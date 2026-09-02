@@ -3,7 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JUKEBOX — rhythm box</title>
+<title>JB-01 — smol composer</title>
+<meta name="description" content="A drum machine, a bass sequencer, eight keyboard voices and a generative DJ — in one HTML file. No install, no samples.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="JB-01">
+<meta property="og:description" content="A drum machine, a bass sequencer, eight keyboard voices and a generative DJ — in one HTML file. No install, no samples.">
+<meta property="og:url" content="https://mimosaagency.github.io/jb-01/">
+<meta property="og:image" content="https://mimosaagency.github.io/jb-01/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JB-01">
+<meta name="twitter:image" content="https://mimosaagency.github.io/jb-01/og.png">
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%23e6e4dd"/><rect x="9" y="9" width="82" height="82" fill="%23f6f5f1"/><circle cx="50" cy="50" r="20.5" fill="%231a1a18"/></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1554,7 +1565,7 @@ function stopSession(){
     var blob=encodeWAV(sessChunks,sessSamples,ctx.sampleRate,2);
     var d=new Date();
     function p2(x){return (x<10?'0':'')+x;}
-    var name='jukebox-'+d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+
+    var name='jb01-'+d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+
              '-'+p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds())+'.wav';
     /* hand it to the local server — deterministic path, no browser download machinery */
     var xhr=new XMLHttpRequest();
@@ -1563,7 +1574,7 @@ function stopSession(){
       report('SAVE status='+xhr.status+' bytes='+blob.size);
       if(xhr.status===200){
         $('sessTime').textContent=name+'  \u00b7  '+(blob.size/1048576).toFixed(1)+' MB';
-        $('loopStat').textContent='saved \u2192 Music/jukebox/recordings';
+        $('loopStat').textContent='saved \u2192 recordings/';
         var rb=$('revealBtn');
         if(rb){ rb.hidden=false; rb.setAttribute('data-file',name); }
       } else fallbackDownload();

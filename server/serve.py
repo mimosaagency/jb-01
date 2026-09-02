@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""JUKEBOX local server: no-cache static files + a save endpoint for recordings."""
+"""JB-01 local server: no-cache static files + a save endpoint for recordings."""
 import http.server, socketserver, functools, os, re, datetime, subprocess
 from urllib.parse import unquote
 
@@ -51,7 +51,7 @@ class H(http.server.SimpleHTTPRequestHandler):
                 if kv.startswith("name="):
                     name = kv[5:]
         if not name or not SAFE.match(name) or not name.endswith(".wav"):
-            name = "jukebox-%s.wav" % datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            name = "jb01-%s.wav" % datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         try:
             n = int(self.headers.get("Content-Length", 0))
         except ValueError:
