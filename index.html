@@ -352,6 +352,8 @@
     text-transform:uppercase;color:var(--ink-3)}
   .intro-card p{font:500 13px/1.6 var(--font);color:var(--ink-2);margin:4px 0 6px}
   .intro-card .btn{min-width:150px;height:40px}
+  .intro-card .note{font:700 7.5px/1.7 var(--font);letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-3);max-width:240px;margin-top:2px}
 
   /* the manual is a page inside the instrument, not a second tab */
   .sheet{width:min(920px,100%);height:min(84vh,900px);background:var(--panel);
@@ -490,6 +492,8 @@
        and a DJ that never stops &mdash; in one HTML file. No install and no
        samples: every sound is synthesised in your browser as you play it.</p>
     <button class="btn" id="introEnter">ENTER</button>
+    <span class="note" id="introNote" hidden>Turn the silent switch off &mdash;
+      iOS mutes web audio even while it plays</span>
   </div>
 </div>
 
@@ -2109,6 +2113,12 @@ selectVoice(0);
      it stays open. Skipping it is safe because audio unlocks on the first
      control you press anyway — start() calls audio(). Storage can throw in a
      private window, so the door simply stays if we cannot read it. */
+  /* iOS silences Web Audio with the hardware switch while still showing the
+     tab as playing, which is impossible to diagnose from inside the page. */
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  if(isIOS){ var nt=$('introNote'); if(nt) nt.hidden=false; }
+
   var SEEN='jb01-entered';
   try{ if(localStorage.getItem(SEEN)) intro.hidden=true; }catch(e){}
 
