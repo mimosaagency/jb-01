@@ -669,8 +669,24 @@ function audio(){
   for(var i=0;i<n;i++) d[i]=Math.random()*2-1;
   noiseBuf=b;
   setDelayTime();
+  /* iOS builds the context SUSPENDED even inside a user gesture — desktop
+     browsers start it running, which is why this only ever failed on a phone.
+     Resuming on creation is the actual fix. */
+  if(ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} }
   return ctx;
 }
+
+/* Belt and braces: any touch anywhere resumes a context iOS has parked, and
+   iOS also suspends it when the page goes to the background. */
+(function keepAudioAwake(){
+  function wake(){ if(ctx && ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} } }
+  ['touchend','pointerdown','click','keydown'].forEach(function(ev){
+    document.addEventListener(ev, wake, true);
+  });
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) wake();
+  });
+})();
 function noise(){ var s=ctx.createBufferSource(); s.buffer=noiseBuf; s.loop=true; return s; }
 function env(g,t,peak,dec,atk){ atk=atk||0.001;
   g.gain.setValueAtTime(0.0001,t);
@@ -967,6 +983,20 @@ function paintPlayhead(s){
   }
   lastPainted=s;
 }
+/* If there is no sound, say why — a suspended context and a phone on silent
+   look identical from the outside otherwise. */
+var lastAudioState='';
+function audioStatus(){
+  var st=$('loopStat'); if(!st) return;
+  var now = !ctx ? 'tap play to start'
+          : (ctx.state!=='running' ? 'audio '+ctx.state+' \u2014 tap again' : '');
+  if(now!==lastAudioState){
+    lastAudioState=now;
+    if(now) st.textContent=now;
+    else if(/^audio |tap play/.test(st.textContent)) st.textContent='idle';
+  }
+}
+
 function uiLoop(){
   if(playing && ctx){
     var now=ctx.currentTime, cur=-1;
@@ -974,6 +1004,7 @@ function uiLoop(){
     if(cur>=0) paintPlayhead(cur);
   }
   try{ djGlide(); }catch(e){}
+  try{ audioStatus(); }catch(e){}
   if(analyser){
     analyser.getByteTimeDomainData(lvlBuf);
     var pk=0; for(var i=0;i<lvlBuf.length;i++){var d=Math.abs(lvlBuf[i]-128); if(d>pk)pk=d;}
