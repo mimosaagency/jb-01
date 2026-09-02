@@ -1605,14 +1605,18 @@ function showLatency(){
 }
 var INST=Math.random().toString(36).slice(2,7);
 /* Telemetry only exists when the optional local server is behind the page.
-   On a plain static host there is nothing to POST to, so this stays silent
-   rather than throwing a failed request on every event. */
+   A status code cannot tell the two apart — a static host 404s the probe path
+   too — so identify the server itself. Python's http.server sends
+   "Server: SimpleHTTP/x.x Python/3.x"; GitHub Pages sends "Server: GitHub.com". */
 var HAS_SERVER=false;
 (function probeServer(){
   try{
     var x=new XMLHttpRequest();
-    x.open('GET','/reveal?name=',true);
-    x.onload=function(){ HAS_SERVER = x.status===404 || x.status===204; };
+    x.open('HEAD', location.pathname, true);
+    x.onload=function(){
+      var sv=(x.getResponseHeader('Server')||'');
+      HAS_SERVER = /SimpleHTTP|Python/i.test(sv);
+    };
     x.send();
   }catch(e){}
 })();
