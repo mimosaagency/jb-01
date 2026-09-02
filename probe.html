@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audio Capability Probe</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0d0f12;--card:#161a20;--line:#252b34;--fg:#e8ecf1;--dim:#8b95a3;
+        --ok:#4ec38a;--warn:#e8b04b;--bad:#e5615c;--accent:#6ba7ff}
+  body{background:var(--bg);color:var(--fg);font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+       padding:22px;font-variant-numeric:tabular-nums}
+  h1{font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+     font-weight:600;margin-bottom:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+        padding:14px 16px;margin-bottom:12px}
+  .card h2{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+           margin-bottom:10px;font-weight:600}
+  .row{display:flex;justify-content:space-between;gap:14px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+  .row:last-child{border:0}
+  .k{color:var(--dim)} .v{text-align:right;word-break:break-word}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+  button{background:#222932;color:var(--fg);border:1px solid var(--line);border-radius:7px;
+         padding:7px 13px;font:inherit;cursor:pointer;margin:3px 4px 3px 0}
+  button:hover{border-color:var(--accent)}
+  button:disabled{opacity:.4;cursor:default}
+  .meter{height:8px;background:#0a0c0f;border-radius:4px;overflow:hidden;margin-top:8px}
+  .meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));transition:width .05s}
+  .log{background:#0a0c0f;border-radius:7px;padding:9px;margin-top:9px;max-height:150px;
+       overflow:auto;font-size:12px;color:var(--dim);white-space:pre-wrap}
+  .big{font-size:22px;font-weight:500}
+  .note{display:inline-block;background:var(--accent);color:#04070c;border-radius:5px;
+        padding:2px 8px;margin:2px;font-weight:600}
+  .hint{color:var(--dim);font-size:12px;margin-top:8px;line-height:1.5}
+</style>
+</head>
+<body>
+<h1>Audio Capability Probe — iMac</h1>
+
+<div class="card">
+  <h2>1 · Environment</h2>
+  <div id="env"></div>
+</div>
+
+<div class="card">
+  <h2>2 · Web MIDI &nbsp;<span style="color:var(--dim)">(the LPK25 test)</span></h2>
+  <button id="midiBtn">Request MIDI access</button>
+  <div id="midiStat"></div>
+  <div id="midiDevs"></div>
+  <div class="hint">Play keys on the LPK25 — notes should appear below.</div>
+  <div id="notes" style="margin-top:8px;min-height:30px"></div>
+  <div class="log" id="midiLog"></div>
+</div>
+
+<div class="card">
+  <h2>3 · Audio input &nbsp;<span style="color:var(--dim)">(the mic test)</span></h2>
+  <button id="micBtn">Request microphone</button>
+  <div id="micStat"></div>
+  <div class="meter"><i id="micMeter"></i></div>
+  <div id="micDevs" style="margin-top:9px"></div>
+</div>
+
+<div class="card">
+  <h2>4 · Synthesis load &nbsp;<span style="color:var(--dim)">(how many voices?)</span></h2>
+  <div class="row"><span class="k">active voices</span><span class="v big" id="vCount">0</span></div>
+  <div class="row"><span class="k">audio-clock drift</span><span class="v" id="drift">—</span></div>
+  <div class="row"><span class="k">verdict</span><span class="v" id="verdict">—</span></div>
+  <div style="margin-top:10px">
+    <button data-add="8">+8</button>
+    <button data-add="16">+16</button>
+    <button data-add="32">+32</button>
+    <button id="stopV">stop all</button>
+  </div>
+  <div class="hint">Add voices until you hear crackling or drift turns red. That number
+  is roughly your polyphony ceiling.</div>
+</div>
+
+<script>
+var $ = function(id){return document.getElementById(id);};
+function row(k,v,cls){return '<div class="row"><span class="k">'+k+'</span><span class="v '+(cls||'')+'">'+v+'</span></div>';}
+
+/* ---------- 1. environment ---------- */
+var AC = window.AudioContext || window.webkitAudioContext;
+var ctx = null;
+function ensureCtx(){
+  if(!ctx){ ctx = new AC(); }
+  if(ctx.state === 'suspended'){ ctx.resume(); }
+  return ctx;
+}
+function showEnv(){
+  var c = ensureCtx();
+  var base = (c.baseLatency != null) ? (c.baseLatency*1000).toFixed(1)+' ms' : 'n/a';
+  var out  = (c.outputLatency != null) ? (c.outputLatency*1000).toFixed(1)+' ms' : 'n/a';
+  var total = ((c.baseLatency||0) + (c.outputLatency||0))*1000;
+  var cls = total < 20 ? 'ok' : total < 45 ? 'warn' : 'bad';
+  var verdict = total < 20 ? 'tight — good for drums'
+              : total < 45 ? 'usable — fine for pads/keys, loose for percussion'
+              : 'high — playable but you will feel it';
+  $('env').innerHTML =
+    row('sample rate', c.sampleRate + ' Hz') +
+    row('base latency', base) +
+    row('output latency', out) +
+    row('total output latency', total.toFixed(1)+' ms', cls) +
+    row('feel', verdict, cls) +
+    row('hardware threads', navigator.hardwareConcurrency || 'unknown') +
+    row('Web MIDI API', (navigator.requestMIDIAccess ? 'present' : 'ABSENT'),
+        navigator.requestMIDIAccess ? 'ok' : 'bad') +
+    row('secure context', window.isSecureContext ? 'yes' : 'NO — Web MIDI will fail',
+        window.isSecureContext ? 'ok' : 'bad');
+}
+
+/* ---------- 2. web midi ---------- */
+var midiLogLines = [];
+function mlog(s){
+  midiLogLines.unshift(s);
+  if(midiLogLines.length > 40) midiLogLines.pop();
+  $('midiLog').textContent = midiLogLines.join('\n');
+}
+var NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function noteName(n){ return NOTES[n%12] + (Math.floor(n/12)-1); }
+
+$('midiBtn').onclick = function(){
+  if(!navigator.requestMIDIAccess){
+    $('midiStat').innerHTML = row('status','Web MIDI API not available in this browser','bad');
+    return;
+  }
+  $('midiStat').innerHTML = row('status','requesting…');
+  navigator.requestMIDIAccess({sysex:false}).then(function(access){
+    $('midiStat').innerHTML = row('status','GRANTED','ok');
+    function listDevices(){
+      var out = '', n = 0;
+      access.inputs.forEach(function(inp){
+        n++;
+        out += row(inp.name || 'unnamed', (inp.manufacturer||'—') + ' · ' + inp.state, 'ok');
+        inp.onmidimessage = function(e){
+          var d = e.data, cmd = d[0] & 0xf0;
+          if(cmd === 0x90 && d[2] > 0){
+            var el = document.createElement('span');
+            el.className = 'note';
+            el.textContent = noteName(d[1]) + ' v' + d[2];
+            $('notes').appendChild(el);
+            while($('notes').children.length > 12) $('notes').removeChild($('notes').firstChild);
+            beep(440 * Math.pow(2,(d[1]-69)/12), d[2]/127);
+            mlog('note on  ' + noteName(d[1]) + '  vel ' + d[2]);
+          } else if(cmd === 0x80 || (cmd === 0x90 && d[2] === 0)){
+            mlog('note off ' + noteName(d[1]));
+          } else if(cmd === 0xb0){
+            mlog('CC ' + d[1] + ' = ' + d[2]);
+          }
+        };
+      });
+      if(n === 0) out = row('inputs','NONE FOUND — is the LPK25 plugged in?','warn');
+      $('midiDevs').innerHTML = out;
+    }
+    listDevices();
+    access.onstatechange = function(){ mlog('device change'); listDevices(); };
+  }).catch(function(err){
+    $('midiStat').innerHTML = row('status','DENIED / FAILED: ' + err.name,'bad')
+      + row('note','If this says SecurityError, serve over http://localhost','warn');
+  });
+};
+
+/* quick blip so MIDI keys make sound */
+function beep(freq, vel){
+  var c = ensureCtx();
+  var o = c.createOscillator(), g = c.createGain();
+  o.type = 'triangle'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, c.currentTime);
+  g.gain.linearRampToValueAtTime(0.25*vel, c.currentTime + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.5);
+  o.connect(g); g.connect(c.destination);
+  o.start(); o.stop(c.currentTime + 0.55);
+}
+
+/* ---------- 3. mic ---------- */
+$('micBtn').onclick = function(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    $('micStat').innerHTML = row('status','getUserMedia unavailable','bad'); return;
+  }
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
+  .then(function(stream){
+    var c = ensureCtx();
+    var src = c.createMediaStreamSource(stream);
+    var an = c.createAnalyser(); an.fftSize = 512;
+    src.connect(an);
+    var track = stream.getAudioTracks()[0];
+    var st = track.getSettings ? track.getSettings() : {};
+    $('micStat').innerHTML =
+      row('status','GRANTED','ok') +
+      row('device', track.label || 'unnamed') +
+      row('channels', st.channelCount || '—') +
+      row('sample rate', st.sampleRate || '—');
+    var buf = new Uint8Array(an.frequencyBinCount);
+    (function loop(){
+      an.getByteTimeDomainData(buf);
+      var peak = 0;
+      for(var i=0;i<buf.length;i++){ var d = Math.abs(buf[i]-128); if(d>peak) peak=d; }
+      $('micMeter').style.width = Math.min(100,(peak/128)*100*1.6) + '%';
+      requestAnimationFrame(loop);
+    })();
+    return navigator.mediaDevices.enumerateDevices();
+  }).then(function(devs){
+    if(!devs) return;
+    var out = '';
+    devs.filter(function(d){return d.kind==='audioinput';})
+        .forEach(function(d){ out += row('input', d.label || '(label hidden)'); });
+    $('micDevs').innerHTML = out;
+  }).catch(function(err){
+    $('micStat').innerHTML = row('status','DENIED: ' + err.name,'bad');
+  });
+};
+
+/* ---------- 4. voice stress ---------- */
+var voices = [], driftRef = null;
+function addVoices(n){
+  var c = ensureCtx();
+  for(var i=0;i<n;i++){
+    var o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+    o.type = ['sawtooth','square','triangle'][i%3];
+    o.frequency.value = 80 + Math.floor(i*7.3) % 600;
+    o.detune.value = (i%12)*4;
+    f.type = 'lowpass'; f.frequency.value = 800 + (i%9)*180; f.Q.value = 4;
+    g.gain.value = 0.012;
+    o.connect(f); f.connect(g); g.connect(c.destination);
+    o.start();
+    voices.push({o:o,g:g,f:f});
+  }
+  $('vCount').textContent = voices.length;
+  if(!driftRef) startDrift();
+}
+function stopAll(){
+  voices.forEach(function(v){ try{v.o.stop();}catch(e){} v.g.disconnect(); });
+  voices = []; $('vCount').textContent = '0';
+}
+function startDrift(){
+  var c = ensureCtx();
+  driftRef = {a: c.currentTime, p: performance.now()/1000};
+  setInterval(function(){
+    var da = c.currentTime - driftRef.a;
+    var dp = performance.now()/1000 - driftRef.p;
+    var ms = (dp - da)*1000;
+    var cls = Math.abs(ms) < 25 ? 'ok' : Math.abs(ms) < 120 ? 'warn' : 'bad';
+    $('drift').className = 'v ' + cls;
+    $('drift').textContent = ms.toFixed(0) + ' ms';
+    var vd = Math.abs(ms) < 25 ? 'audio thread keeping up'
+           : Math.abs(ms) < 120 ? 'straining' : 'DROPPING OUT — past the ceiling';
+    $('verdict').className = 'v ' + cls;
+    $('verdict').textContent = vd;
+  }, 700);
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-add]'), function(b){
+  b.onclick = function(){ addVoices(parseInt(b.getAttribute('data-add'),10)); };
+});
+$('stopV').onclick = stopAll;
+
+/* boot */
+document.body.addEventListener('click', function once(){ showEnv(); document.body.removeEventListener('click', once); });
+showEnv();
+</script>
+</body>
+</html>

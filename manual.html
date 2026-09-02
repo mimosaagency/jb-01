@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JB-01 — manual</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%23e6e4dd"/><rect x="9" y="9" width="82" height="82" fill="%23f6f5f1"/><circle cx="50" cy="50" r="20.5" fill="%231a1a18"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Martian+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    /* same three materials as the instrument: plate, key, screen */
+    --panel:#e6e4dd; --strip:#f6f5f1; --strip-hi:#f6f5f1; --well:#d9d7cf;
+    --hair:#d3d0c7; --edge-hi:transparent;
+    --ink:#1a1a18; --ink-dim:#5c5a54; --ink-faint:#8e8b83;
+    --orange:#ff5a1f; --amber:#5c5a54; --cream:#1a1a18; --teal:#8e8b83; --red:#e5342a;
+    --font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Zen Kaku Gothic New",
+           -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    --mono:"Martian Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  body{background:var(--panel);color:var(--ink);font:400 14px/1.6 var(--font);
+       -webkit-font-smoothing:antialiased;padding:26px;max-width:1180px;margin:0 auto}
+  .lbl{font-size:8.5px;font-weight:600;letter-spacing:.19em;text-transform:uppercase;color:var(--ink-faint)}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+         border-bottom:1px solid var(--hair);padding-bottom:16px;margin-bottom:22px}
+  h1{font-size:26px;font-weight:700;letter-spacing:.15em;color:var(--cream);line-height:1}
+  h1 small{display:block;font-size:8px;letter-spacing:.28em;color:var(--ink-faint);margin-top:6px;font-weight:600}
+  a.back{font:600 10px/1 var(--font);letter-spacing:.12em;text-transform:uppercase;
+         color:var(--ink);text-decoration:none;background:var(--well);
+         border:0;border-radius:2px;padding:9px 14px}
+  a.back:hover{background:#cfccc3;color:var(--ink)}
+  section{background:var(--strip);border:0;border-radius:2px;
+          padding:18px 20px;margin-bottom:14px}
+  h2{font-size:9px;font-weight:600;letter-spacing:.19em;text-transform:uppercase;
+     color:var(--orange);margin-bottom:14px}
+  h3{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--cream);
+     margin:18px 0 7px;text-transform:uppercase}
+  h3:first-of-type{margin-top:0}
+  p{color:var(--ink-dim);margin-bottom:10px;max-width:76ch}
+  table{width:100%;border-collapse:collapse;margin:8px 0 4px}
+  td{padding:6px 10px 6px 0;border-bottom:1px solid rgba(58,47,37,.5);vertical-align:top;
+     color:var(--ink-dim);font-size:13px}
+  td:first-child{width:180px;color:var(--cream);font-weight:600;font-size:12px;
+                 letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  code,kbd{font:600 11px/1 var(--mono);background:var(--well);border:0;
+           border-radius:2px;padding:3px 6px;color:var(--ink)}
+  .warn{border-left:2px solid var(--red);padding-left:13px;color:var(--ink-dim);margin:12px 0}
+  .tip{border-left:2px solid var(--teal);padding-left:13px;color:var(--ink-dim);margin:12px 0}
+  .live{background:var(--well);border:0;border-radius:2px;padding:14px;margin-top:12px}
+  .mon{font:500 12px/1.7 var(--mono);color:var(--ink-dim);max-height:190px;overflow:auto;
+       white-space:pre-wrap;margin-top:10px}
+  .mon b{color:var(--ink);font-weight:600}
+  .mon i{color:var(--ink-faint);font-style:normal}
+  button{background:var(--well);color:var(--ink);
+         border:0;border-radius:2px;padding:8px 14px;
+         font:600 10px/1 var(--font);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+  button:hover{background:#cfccc3;color:var(--ink)}
+  .meter{height:6px;background:var(--well);border-radius:2px;overflow:hidden;margin-top:10px}
+  .meter i{display:block;height:100%;width:0;background:var(--ink-faint)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .keymap{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-top:10px}
+  .keymap div{background:var(--well);border:0;border-radius:2px;
+              padding:9px 4px;text-align:center}
+  .keymap b{display:block;font:600 13px/1 var(--mono);color:var(--ink)}
+  .keymap span{display:block;font-size:8.5px;letter-spacing:.12em;color:var(--ink-faint);
+               margin-top:5px;text-transform:uppercase;font-weight:600}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}.keymap{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>JB-01<small>MANUAL</small></h1>
+  <a class="back" href="jukebox.html">← back to the instrument</a>
+</header>
+
+<section>
+  <h2>00 · What this is</h2>
+  <p><b>JB-01</b> is a drum machine, a bass sequencer, eight keyboard voices, a mic looper, a mixer and a session recorder &mdash; in <b>one HTML file</b>. There is no installer, no build step, no plugin and no account. Open it in a browser and it works.</p>
+  <p>There are also <b>no samples</b>. Every sound you hear is synthesised in the browser as you play it: the kick is a pitch-swept sine, the snare is noise through a band-pass, the hats are noise through a high-pass. That is why the whole instrument is a few dozen kilobytes and why you can retune any drum without it sounding stretched.</p>
+
+  <h3>What works where</h3>
+  <table>
+    <tr><td>Sound</td><td>Everywhere. Web Audio is in every current browser. On phones and tablets you must tap once before anything makes noise &mdash; that is a browser rule, not a bug.</td></tr>
+    <tr><td>MIDI keyboard</td><td><b>Chrome and Edge only.</b> Firefox needs a preference switched on (see section 09). Safari and iOS have no Web MIDI at all &mdash; everything else still works, you just click instead of play.</td></tr>
+    <tr><td>Microphone</td><td>Needs <code>https://</code> or <code>localhost</code>. On a plain <code>http://</code> address the browser will refuse, silently.</td></tr>
+    <tr><td>Saving a session</td><td>Downloads as a <b>.wav</b> through the browser. If you are running the optional local server it writes straight to a folder instead &mdash; section 09.</td></tr>
+  </table>
+  <div class="tip">Nothing you make leaves your machine. There is no server involved in playing it, no analytics, and no upload. Close the tab and it is gone &mdash; so if a session mattered, record it.</div>
+</section>
+
+<section>
+  <h2>01 · The panel</h2>
+  <div class="grid2">
+    <div>
+      <h3>Transport &amp; pattern</h3>
+      <table>
+        <tr><td>Play</td><td>Starts and stops the sequencer. <kbd>space</kbd></td></tr>
+        <tr><td>Clear</td><td>Wipes drums and bass. <kbd>c</kbd></td></tr>
+        <tr><td>Random</td><td>Generates a pattern — a sensible kick/hat skeleton plus scattered accents. Hit it repeatedly until something grabs you. <kbd>r</kbd></td></tr>
+        <tr><td>Auto</td><td>Hands the box to a resident DJ who never gets tired. See section 08. <kbd>a</kbd></td></tr>
+        <tr><td>Rec Session</td><td>Records everything you hear to a WAV file. <kbd>⇧R</kbd></td></tr>
+      </table>
+      <h3>The drum grid</h3>
+      <p>Each cell cycles through four states as you click it. Dot size is velocity:</p>
+      <table>
+        <tr><td>empty</td><td>silent</td></tr>
+        <tr><td>small · brown</td><td>ghost note, quiet</td></tr>
+        <tr><td>medium · amber</td><td>normal hit</td></tr>
+        <tr><td>large · cream</td><td>accent, full volume</td></tr>
+      </table>
+      <p>Click a <b>track name</b> on the left to mute or unmute that voice.</p>
+    </div>
+    <div>
+      <h3>Sound controls</h3>
+      <table>
+        <tr><td>Tempo</td><td>50–180 BPM. The delay time follows it automatically.</td></tr>
+        <tr><td>Swing</td><td>Pushes every off-beat 16th later. Around 15–25% is where it starts to groove.</td></tr>
+        <tr><td>Filter</td><td>Low-pass across the whole mix. Pull it down for a muffled, underwater feel.</td></tr>
+        <tr><td>Delay</td><td>Echo, locked to three 16ths. Sparing amounts add depth; high amounts get chaotic.</td></tr>
+      </table>
+      <p>Output level lives in the mixer, not up here &mdash; section 03.</p>
+      <h3>Bass</h3>
+      <p>The right-hand grid is a bass line. Rows are locked to whichever scale you pick in the KEYS bar, so there are no wrong notes &mdash; click one cell per column. Its three faders shape the sound:</p>
+      <table>
+        <tr><td>Cutoff</td><td>Brightness</td></tr>
+        <tr><td>Reso</td><td>Emphasis at the cutoff — the squelchy part</td></tr>
+        <tr><td>Decay</td><td>How fast each note closes down</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <h2>02 · The voice editor</h2>
+  <p>The eight drums are not recordings, so they are not fixed. The strip under the drum grid edits whichever voice is selected &mdash; <b>click a track name</b> on the left of the grid to select it, and the name turns to mark which one you are holding.</p>
+  <table>
+    <tr><td>Tune</td><td>Pitch, in semitones, up or down. This moves the whole voice, including the noise components, so it stays coherent rather than sounding sped up.</td></tr>
+    <tr><td>Decay</td><td>How long the sound takes to die, as a percentage of that voice's natural tail. 40% turns a kick into a click; 200% turns it into a boom.</td></tr>
+    <tr><td>Level</td><td>How loud this one voice is, independent of the drum channel in the mixer.</td></tr>
+    <tr><td>Mute</td><td>Silences the voice while keeping its pattern. The track name greys out so you remember it is still programmed.</td></tr>
+    <tr><td>Reset</td><td>Back to the factory value for that voice. Only the selected one.</td></tr>
+  </table>
+  <p>Changing Tune, Decay or Level plays the voice once so you can hear the edit while the sequencer is stopped.</p>
+
+  <h3>If you've never done this before</h3>
+  <p>The fastest way to understand it is to break something on purpose. Select <b>TOM</b>, pull Tune down to about &minus;7 and Decay up past 150, and you have a floor tom instead of a rack tom. Select <b>KICK</b>, pull Decay down to 40, and the room disappears from underneath your pattern. Select <b>HAT</b> and push Tune up &mdash; it gets thinner and more brittle, because you are moving the noise band, not stretching a recording.</p>
+  <div class="tip">This is how the same eight voices become a different machine. A 909 and a 606 are largely the same ideas at different tunings and decays &mdash; you have the same two knobs they had. Retune the whole kit down and shorten everything and you are in 606 territory; lengthen the kick and open the hats and you are closer to a 909.</div>
+  <div class="warn">Voice settings are <b>not saved</b>. They live in the page, and reloading returns everything to factory. If a kit is working, record the session before you touch anything else.</div>
+</section>
+
+<section>
+  <h2>03 · The mixer</h2>
+  <p>Five sources plus a master, each with a fader you drag vertically and an <b>M</b> button. Drag the fader itself &mdash; up is louder.</p>
+  <table>
+    <tr><td>Drums</td><td>All eight drum voices together, after their individual Level settings.</td></tr>
+    <tr><td>Bass</td><td>The bass sequencer and the bass synth if you are playing it from the Akai.</td></tr>
+    <tr><td>Keys</td><td>The melodic voice &mdash; whatever preset the KEYS bar is set to.</td></tr>
+    <tr><td>Mic</td><td>Live microphone, only audible when <b>Live Mic</b> is on.</td></tr>
+    <tr><td>Loop</td><td>The recorded one-bar loop.</td></tr>
+    <tr><td>Master</td><td>Everything, after the limiter. Starts at 70%.</td></tr>
+  </table>
+  <p>Four of the channels stop at 150% and the loop channel goes to <b>250%</b>. That is deliberate: a loop recorded from a quiet source can be far below everything else, and without the extra headroom you could never bring it up to sit with the drums.</p>
+  <div class="tip"><b>Master starts at 70%, not 100%.</b> There is a limiter on the output catching peaks, and starting below full means the limiter is shaping the loud moments rather than fighting the whole mix. If you want it louder, turn up your speakers before you turn up the master.</div>
+
+  <h3>What mute actually does</h3>
+  <p>The <b>M</b> buttons mute the <i>channel</i>, not the part. A muted channel is still running, still being scheduled, and still lands in a session recording &mdash; as silence. That matters if you are recording: muting Drums for the last minute gives you a minute of drumless recording, exactly as you heard it. It is a performance control, not a way to remove something from the file afterwards.</p>
+  <p>Muting a channel greys its name and value. It is independent of the per-voice Mute in section 02 &mdash; that one silences a single drum, this one silences the whole bus.</p>
+</section>
+
+<section>
+  <h2>04 · The Akai LPK25</h2>
+  <p>The <b>MIDI</b> dropdown in the footer decides what the keyboard plays.</p>
+  <table>
+    <tr><td>Drums + Keys</td><td><b>Default.</b> Keys below middle C (C3) trigger drums; C3 and above play the melodic KEYS voice. Left hand rhythm, right hand melody.</td></tr>
+    <tr><td>Keys only</td><td>The whole keyboard is melodic. See section 05.</td></tr>
+    <tr><td>Drums only</td><td>The whole keyboard is a drum kit.</td></tr>
+    <tr><td>Bass only</td><td>The whole keyboard plays the bass synth — deeper and squelchier than Keys.</td></tr>
+  </table>
+  <h3>Drum key map</h3>
+  <p>In drum territory the mapping repeats every octave:</p>
+  <div class="keymap">
+    <div><b>C</b><span>Kick</span></div><div><b>C♯</b><span>Snare</span></div>
+    <div><b>D</b><span>Clap</span></div><div><b>D♯</b><span>Hat</span></div>
+    <div><b>E</b><span>Open</span></div><div><b>F</b><span>Tom</span></div>
+    <div><b>F♯</b><span>Rim</span></div><div><b>G</b><span>Cow</span></div>
+  </div>
+  <p style="margin-top:12px">How hard you play sets the velocity, exactly like clicking a big or small dot. The track name flashes when you hit it, so you can learn the layout by ear and eye together.</p>
+
+  <h3>What the LPK25's own buttons do</h3>
+  <p>Those buttons are handled <b>on the keyboard itself</b>, not by JUKEBOX — so rather than guess, press them and watch. Every message the keyboard sends appears below, decoded.</p>
+  <div class="live">
+    <span class="lbl">Live MIDI monitor</span>
+    <div style="margin-top:9px"><button id="midiBtn">Connect MIDI</button>
+      <span id="midiStat" style="margin-left:12px;font-size:12px;color:var(--ink-faint)">not connected</span></div>
+    <div class="mon" id="mon">Press Connect, then play keys and press OCTAVE, ARP, SUS, TAP TEMPO…</div>
+  </div>
+  <div class="tip"><b>What you'll typically see:</b> <b>OCTAVE ▲▼</b> shifts note numbers up or down by 12 — useful for moving the whole keyboard into drum or bass territory in Split mode. <b>ARP</b> makes the keyboard send repeated notes on its own while you hold a chord. <b>SUS</b> sends a sustain message (CC 64). <b>TAP TEMPO</b> sets the arpeggiator's speed on the device and may send nothing at all. The monitor tells you the truth for your unit.</div>
+</section>
+
+<section>
+  <h2>05 · Playing notes over the beat</h2>
+  <p>The <b>KEYS</b> bar turns the Akai into a small melodic instrument you can play while the beat runs. It's built so that you cannot play a wrong note.</p>
+
+  <h3>Scale lock — the important one</h3>
+  <p>Normally a keyboard gives you all twelve notes, and most combinations of them sound bad. That's the thing that makes playing hard when you're starting out.</p>
+  <p>With <b>SCALE LOCK</b> on, every physical key is remapped to the nearest note of the chosen scale. The out-of-tune notes simply aren't reachable. Press keys in any order, at any speed, and it will sound musical — because the notes that could clash have been removed from the keyboard entirely.</p>
+  <div class="tip">Adjacent keys become adjacent <b>scale steps</b>, not semitones. So running your finger up the keyboard plays a melodic run rather than a chromatic slide. Turn the lock off later, when you want the other notes back.</div>
+
+  <h3>Which scale to pick</h3>
+  <table>
+    <tr><td>Pentatonic minor</td><td><b>Start here.</b> Five notes, and essentially every combination of them works together. It's the scale behind most blues, rock and hip-hop riffs. Very hard to make sound wrong.</td></tr>
+    <tr><td>Minor</td><td>Seven notes. Darker, more melancholy, a bit more room to make a choice you don't like.</td></tr>
+    <tr><td>Pentatonic major</td><td>Five notes, bright and open. Folk and pop.</td></tr>
+    <tr><td>Major</td><td>Seven notes, the standard happy sound. The least forgiving of the five.</td></tr>
+    <tr><td>Dorian</td><td>Minor with one note lifted. Jazzy, slightly wistful.</td></tr>
+  </table>
+  <p><b>KEY</b> sets which note the scale starts from. It changes the mood without changing the relationships — the same scale in a different key sounds the same, just higher or lower. <b>The bass grid follows it too</b>, so your bass line and your playing are always in agreement.</p>
+
+  <h3>The eight sounds</h3>
+  <p><b>For beats and house:</b></p>
+  <table>
+    <tr><td>E.Piano</td><td>Soft, bell-like, medium sustain. The most forgiving — good for chords and for finding your way around.</td></tr>
+    <tr><td>Rhodes</td><td>Warmer and rounder than E.Piano, with a longer tail. The classic deep-house keyboard sound — play slow chords and let them ring.</td></tr>
+    <tr><td>House Stab</td><td>Three detuned saws with the filter slamming shut. This is the short chord jab you hear on every deep-house record. Play it on the off-beats.</td></tr>
+    <tr><td>House Organ</td><td>Drawbar organ tone, sustained. Good for held chords underneath a beat, or bouncy repeated stabs.</td></tr>
+    <tr><td>Pluck</td><td>Short and percussive. Good for fast repeated notes and riffs that sit inside the beat.</td></tr>
+  </table>
+  <p style="margin-top:14px"><b>For ambient:</b></p>
+  <table>
+    <tr><td>Glass</td><td>An inharmonic bell with a long shimmering tail. Play sparse single notes and let them overlap — you barely need a beat at all.</td></tr>
+    <tr><td>Pad</td><td>Slow to fade in, long to fade out. Hold a few keys and it becomes a sustained wash under everything.</td></tr>
+    <tr><td>Drone</td><td>The most ambient of them: nearly a second to swell in, four seconds to fade. Hold two or three notes, turn the beat off entirely, and it becomes the whole piece.</td></tr>
+  </table>
+  <table>
+    <tr><td>Keys vol</td><td>Balance against the drums and bass.</td></tr>
+    <tr><td>Octave</td><td>Shifts your whole playing range up or down. Low for basslines, high for melodies over the top.</td></tr>
+  </table>
+  <div class="tip"><b>Two recipes to try.</b> <b>Ambient:</b> press CLEAR to silence the drums, pick DRONE or GLASS, set the scale to pentatonic minor, hold two or three notes and let them overlap. Add a little delay. <b>Deep house:</b> kick on steps 1/5/9/13, open hat on the off-beats, HOUSE STAB on the keys, and play short chords slightly after the beat rather than on it.</div>
+
+  <h3>If you've never done this before</h3>
+  <p>A few things that will make it sound better immediately, none of which require knowing any theory:</p>
+  <table>
+    <tr><td>Use fewer notes</td><td>Two or three notes repeated with confidence sound better than lots of notes. Almost every memorable riff is very short.</td></tr>
+    <tr><td>Leave gaps</td><td>Silence is part of it. Play on some beats and not others; the rhythm of when you play matters more than which notes.</td></tr>
+    <tr><td>Repeat yourself</td><td>Play the same little phrase around and around. Repetition is what turns notes into a hook.</td></tr>
+    <tr><td>Land on the beat</td><td>Try hitting a note exactly when the kick drum does. Then try deliberately between kicks. Both feel different, and noticing that difference is most of rhythm.</td></tr>
+    <tr><td>Record it</td><td>Hit <b>Rec Session</b> and just play for two minutes without stopping. You'll keep the accidents worth keeping, and accidents are where most ideas come from.</td></tr>
+  </table>
+  <div class="tip">Set the MIDI dropdown to <b>DRUMS + KEYS</b> and you get both at once: the bottom of the keyboard fires drums, the top plays notes. Left hand rhythm, right hand melody.</div>
+</section>
+
+<section>
+  <h2>06 · The mic</h2>
+  <p>Your Teenage Engineering mic runs into the iMac's <b>line-in</b> — the right-hand of the two round jacks on the back. Its own effect buttons are processed <b>in the box, in hardware</b>, before the signal ever reaches the computer. JUKEBOX just receives whatever comes out. So: change the effect on the device, and you'll hear it change here.</p>
+  <h3>The two mic buttons in JUKEBOX</h3>
+  <table>
+    <tr><td>Live Mic</td><td>Passes the mic straight through to the speakers, <b>routed through the filter and delay</b>. Talk, sing, make noise — no recording, no looping. Turn the delay up and speak into it.</td></tr>
+    <tr><td>Rec Loop</td><td>Captures <b>exactly one bar</b> and loops it underneath everything, forever, until you clear it. Press it while the sequencer is playing and it waits for step 1 so the loop lands in time.</td></tr>
+    <tr><td>Clear Loop</td><td>Wipes the loop.</td></tr>
+    <tr><td>Input</td><td>Which input to use. Pick <b>Line In</b> — not the iMac's internal microphone.</td></tr>
+    <tr><td>Mic vol / Loop vol</td><td>Levels for the live mic and the recorded loop, separately.</td></tr>
+  </table>
+  <div class="warn"><b>Feedback.</b> The iMac's speakers sit right next to its line-in. With Live Mic on you may get a howl. <b>Use headphones</b> — plug them into the left-hand jack — and the problem disappears entirely.</div>
+  <div class="live">
+    <span class="lbl">Input level check</span>
+    <div style="margin-top:9px"><button id="micBtn">Test input</button>
+      <span id="micStat" style="margin-left:12px;font-size:12px;color:var(--ink-faint)">not tested</span></div>
+    <div class="meter"><i id="lvl"></i></div>
+    <p style="margin-top:9px;font-size:12px">Speak into the mic. You want the bar dancing around the middle. Barely moving means turn the device up; pinned to the right means turn it down — that's distortion.</p>
+  </div>
+</section>
+
+<section>
+  <h2>07 · Recording a session</h2>
+  <p>Press <b>Rec Session</b> and JUKEBOX captures the complete mix — drums, bass, your loop, live mic, anything you play on the Akai — as it happens. Press it again to stop, and a <b>.wav</b> file downloads automatically, named with the date and time.</p>
+  <table>
+    <tr><td>Format</td><td>16-bit stereo WAV at your system rate. Opens in GarageBand, QuickTime, anything.</td></tr>
+    <tr><td>Size</td><td>Around 10 MB per minute. The counter shows elapsed time and size as you go.</td></tr>
+    <tr><td>Limit</td><td>Stops itself at 15 minutes so it can't quietly eat all your memory.</td></tr>
+  </table>
+  <div class="tip">It records what you <b>hear</b>, not what's programmed — so tweaking the filter, muting a track, or playing live all land in the recording. Treat it as a performance capture, not a bounce.</div>
+</section>
+
+
+<section>
+  <h2>08 · Auto Set</h2>
+  <p>Press <b>Auto Set</b> and the machine starts playing itself, indefinitely. It writes into the same drum grid and piano roll you use by hand, one bar ahead of the playhead — so you can watch the set being written while you hear it. Leave it on for four hours and it will still be going, and it will not have repeated itself.</p>
+
+  <h3>Why it isn't just Random on a timer</h3>
+  <p>Random rolls dice every time you press it. Auto Set runs an <b>arrangement</b>. Underneath is a single number — <i>energy</i> — that decides how much is allowed to play, and a small state machine that moves that number around in a shape a set actually has:</p>
+  <table>
+    <tr><td>intro</td><td>Bass and a soft hat. The kick hasn't arrived yet.</td></tr>
+    <tr><td>groove</td><td>The main body. Kick, clap, offbeat hat, a rolling bass. Runs 16&ndash;32 bars.</td></tr>
+    <tr><td>build</td><td>Energy climbs, the filter opens, the delay dries out, hats go to sixteenths.</td></tr>
+    <tr><td>peak</td><td>Everything at once. Ghost kicks, rim sixteenths, a rolling backbeat.</td></tr>
+    <tr><td>breakdown</td><td>The kick <i>cuts</i>, not fades. Filter closes, delay opens up, bass and hats float. Then it builds again.</td></tr>
+  </table>
+  <p>The current section and a little energy meter sit in the readout at the top, next to the BPM.</p>
+
+  <h3>The three rules that make it listenable</h3>
+  <table>
+    <tr><td>It repeats</td><td>A phrase is composed once and then played eight times, with a fill on the last bar. A groove that changes every bar isn't a groove.</td></tr>
+    <tr><td>It only moves on bar lines</td><td>Nothing ever changes mid-bar. Sections are whole 8-bar phrases.</td></tr>
+    <tr><td>It doesn't roll dice for the parts</td><td>Kick, clap and hat placements come from a small vocabulary that's correct for the genre. The dice only choose <i>between</i> good options.</td></tr>
+  </table>
+
+  <h3>The three genres</h3>
+  <table>
+    <tr><td>Techno</td><td>130 BPM, no swing, A minor. Straight kick, offbeat open hat, one-note rolling bass, cowbell only at full peak.</td></tr>
+    <tr><td>House</td><td>124 BPM, heavy swing, F dorian. Clap and snare layered on 2 and 4, sixteenth hats earlier, a bassline that moves more.</td></tr>
+    <tr><td>Dub</td><td>120 BPM, light swing, D pentatonic minor. Sparser everything, holes punched in the open hat, long delay.</td></tr>
+  </table>
+
+  <h3>Playing along with it</h3>
+  <p>Auto Set only owns the <b>drums and the bass</b>, plus the master filter, delay, swing and bass cutoff. It never touches your keys, your mic, your loop or the mixer. So the intended way to use it is to leave it running and play the Akai over the top &mdash; it's a rhythm section that never stops and never complains.</p>
+  <div class="tip">The readout shows the key it's working in, e.g. <b>A min &middot; D</b>. The first part is the scale, and it does not change &mdash; leave <b>Scale Lock</b> on and every key on the Akai will be in key. The part after the dot is where the bass has moved to, which is the chord you're currently over.</div>
+  <p>Pressing <b>Clear</b> or <b>Random</b> switches Auto Set off and hands you back the controls. Whatever bar it was on stays in the grid, so if it played something you liked, stop it and keep it.</p>
+  <div class="tip">Recording works exactly as normal, so <b>Rec Session</b> during an Auto Set gives you a 15-minute mix of a set you didn't have to play. Turn on Live Mic and talk over it if you want a radio show.</div>
+</section>
+
+<section>
+  <h2>09 · Running it locally</h2>
+  <p>Everything works from a plain web address. Running it on your own machine buys you three things: recordings that write straight to a folder instead of the downloads pile, a <b>Show in Finder</b> button that actually opens it, and a microphone that is allowed to work over <code>http://</code>.</p>
+
+  <h3>Start the server</h3>
+  <p>Put the files in a folder and run the small Python server that ships alongside them:</p>
+  <p><code>python3 serve.py</code> &mdash; then open <code>http://localhost:8080</code>.</p>
+  <p>It serves the page with caching off, accepts the finished <b>.wav</b> on <code>/save</code> and writes it into <code>recordings/</code>, and answers <code>/reveal</code> by opening that file in the Finder. It listens on <code>127.0.0.1</code> only, so nothing is exposed to your network.</p>
+  <div class="warn">It must be <code>http://localhost</code>. Opening the file directly with <code>file://</code> loads the page but the browser will block the microphone and Web MIDI, and you will get an instrument with no input.</div>
+
+  <h3>Web MIDI in Firefox</h3>
+  <p>Firefox ships Web MIDI switched off. Open <code>about:config</code>, set <code>dom.webmidi.gated</code> to <code>false</code>, and restart. Chrome and Edge need nothing &mdash; they will simply ask permission. Safari and iOS have no Web MIDI at all and no preference to change.</p>
+
+  <h3>Making it feel like an app</h3>
+  <p>Any browser will do, but a dedicated profile launched in kiosk mode against <code>localhost:8080</code> gets you a window with no address bar, no tabs and no chrome &mdash; which is the difference between using a web page and using an instrument. On macOS, wrapping that command in an <code>.app</code> bundle puts it in the Dock like anything else.</p>
+</section>
+
+<section>
+  <h2>10 · Shortcuts &amp; fixes</h2>
+  <div class="grid2">
+    <div>
+      <h3>Keyboard</h3>
+      <table>
+        <tr><td><kbd>space</kbd></td><td>Play / stop</td></tr>
+        <tr><td><kbd>c</kbd></td><td>Clear pattern</td></tr>
+        <tr><td><kbd>r</kbd></td><td>Random pattern</td></tr>
+        <tr><td><kbd>a</kbd></td><td>Auto Set on / off</td></tr>
+        <tr><td><kbd>⇧R</kbd></td><td>Start / stop session recording</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>If something's wrong</h3>
+      <table>
+        <tr><td>No sound at all</td><td>Click or tap anywhere first &mdash; every browser blocks audio until you interact with the page.</td></tr>
+        <tr><td>No MIDI</td><td>Chrome or Edge will just ask. Firefox needs a preference; Safari and iOS cannot do it at all. Section 09.</td></tr>
+        <tr><td>No microphone</td><td>The page must be on <code>https://</code> or <code>localhost</code>. On plain <code>http://</code> the browser refuses without saying so.</td></tr>
+        <tr><td>Howling</td><td>Live Mic is on through the speakers. Headphones.</td></tr>
+        <tr><td>Wrong input</td><td>Set the Input dropdown to the device you actually plugged in.</td></tr>
+        <tr><td>Kit sounds wrong</td><td>You edited a voice and reloaded, or you did not. Voice settings reset on reload &mdash; section 02.</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+var $=function(i){return document.getElementById(i);};
+/* inside the instrument's manual sheet there is a CLOSE button, and the
+   back link would navigate the iframe rather than the page. */
+if(window.self!==window.top){
+  var b=document.querySelector("a.back"); if(b) b.style.display="none";
+}
+var NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+var DRUM=['Kick','Snare','Clap','Hat','Open','Tom','Rim','Cow'];
+function nm(n){return NOTES[n%12]+(Math.floor(n/12)-1);}
+var lines=[];
+function log(html){
+  lines.unshift(html);
+  if(lines.length>80) lines.pop();
+  $('mon').innerHTML=lines.join('\n');
+}
+var CC={1:'Mod wheel',64:'Sustain pedal',120:'All sound off',121:'Reset controllers',123:'All notes off'};
+$('midiBtn').onclick=function(){
+  if(!navigator.requestMIDIAccess){ $('midiStat').textContent='Web MIDI not available in this browser'; return; }
+  navigator.requestMIDIAccess({sysex:false}).then(function(a){
+    function bind(){
+      var names=[];
+      a.inputs.forEach(function(inp){
+        names.push(inp.name);
+        inp.onmidimessage=function(e){
+          var d=e.data, cmd=d[0]&0xf0, ch=(d[0]&0x0f)+1;
+          if(cmd===0x90&&d[2]>0){
+            var role = d[1]<48 ? ' <i>→ '+DRUM[d[1]%12<8?d[1]%12:(d[1]%12)%8]+' in Split</i>' : ' <i>→ bass in Split</i>';
+            log('<b>NOTE ON </b> '+nm(d[1])+'  (note '+d[1]+')  vel '+d[2]+'  ch'+ch+role);
+          }
+          else if(cmd===0x80||(cmd===0x90&&d[2]===0)) log('NOTE OFF  '+nm(d[1]));
+          else if(cmd===0xb0) log('<b>CONTROL</b>  CC '+d[1]+' = '+d[2]+(CC[d[1]]?'  <i>('+CC[d[1]]+')</i>':'')+'  ch'+ch);
+          else if(cmd===0xc0) log('<b>PROGRAM</b>  '+d[1]+'  ch'+ch);
+          else if(cmd===0xe0) log('PITCH BEND  '+(((d[2]<<7)|d[1])-8192));
+          else if(d[0]===0xfa) log('<i>CLOCK START</i>');
+          else if(d[0]===0xfc) log('<i>CLOCK STOP</i>');
+          else if(d[0]!==0xf8) log('raw  '+Array.prototype.join.call(d,' '));
+        };
+      });
+      $('midiStat').textContent = names.length ? ('connected — '+names.join(', ')) : 'no MIDI devices found';
+      $('midiStat').style.color = names.length ? 'var(--teal)' : 'var(--red)';
+    }
+    bind(); a.onstatechange=bind;
+    log('<i>listening…</i>');
+  }).catch(function(err){
+    $('midiStat').textContent='denied ('+err.name+') — try dom.webmidi.gated = false in about:config';
+    $('midiStat').style.color='var(--red)';
+  });
+};
+$('micBtn').onclick=function(){
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
+  .then(function(st){
+    var C=new (window.AudioContext||window.webkitAudioContext)();
+    var src=C.createMediaStreamSource(st), an=C.createAnalyser(); an.fftSize=512; src.connect(an);
+    var tr=st.getAudioTracks()[0];
+    $('micStat').textContent='listening — '+(tr.label||'unnamed');
+    $('micStat').style.color='var(--teal)';
+    var buf=new Uint8Array(an.frequencyBinCount);
+    (function loop(){
+      an.getByteTimeDomainData(buf);
+      var pk=0; for(var i=0;i<buf.length;i++){var d=Math.abs(buf[i]-128); if(d>pk)pk=d;}
+      $('lvl').style.width=Math.min(100,(pk/128)*160)+'%';
+      $('lvl').style.background = pk>110 ? 'var(--red)' : 'var(--teal)';
+      requestAnimationFrame(loop);
+    })();
+  }).catch(function(err){ $('micStat').textContent='denied ('+err.name+')'; $('micStat').style.color='var(--red)'; });
+};
+</script>
+</body>
+</html>
