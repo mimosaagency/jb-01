@@ -1145,7 +1145,7 @@ var GENRES={
 };
 var chordSeq=new Array(STEPS).fill(0);   /* which steps carry a stab */
 var DJ={on:false,bar:0,secN:0,sec:'intro',left:10,e:0.12,eT:0.18,base:0,genre:'techno',
-        pending:null,xfade:0,prog:[0,0,0,0],chordNow:[],chordPrev:null,
+        pending:null,xfade:0,chords:false,prog:[0,0,0,0],chordNow:[],chordPrev:null,
         cut:18000,dlyA:0,swA:0,bcutA:900,bpmA:138};
 var DJC={cut:18000,dly:0,sw:0,bcut:1200,bpm:138};  /* float shadows of the sliders */
 /* ---- playing along with the machine ----
@@ -1368,9 +1368,13 @@ function djVoice(deg,prev){
    varies their right hand while the groove underneath repeats. chordSeq holds
    how many notes each stab gets, so some are the full stack and some are a
    two-note fragment. */
+/* Auto Set does not play chords by default — the arrangement is drums and bass,
+   and the keyboard stays yours. The machinery below is intact and switching it
+   on is one flag: DJ.chords=true (from the console, or flip the default here). */
 function djChordRhythm(){
   var G=GENRES[DJ.genre], e=DJ.e, i;
   chordSeq.fill(0);
+  if(!DJ.chords) return;
   if(e<=G.gate.chord) return;
   var cr = (G.chord==='seventh')
       ? djPick([[2,10],[2,6,14],[2,10,11],[6,14],[2,6,10,14],[2,3,10],[2,6,10],[10,14]])
@@ -1437,7 +1441,7 @@ function djApplyGenre(snapTempo){
   }
   $('kScale').value=G.scale; $('kRoot').value=String(G.root);
   relabelRoll();
-  $('kSound').value=G.keys;
+  if(DJ.chords) $('kSound').value=G.keys;   /* only when it is playing them */
   DJ.swA=G.swing;
   /* the kit is part of the character: techno's kick is tuned down and long,
      house's is tighter and higher. */
@@ -1449,7 +1453,7 @@ function djApplyGenre(snapTempo){
      are present from the first bar and would otherwise crowd the kit. */
   if(G.mix){
     $('mixBass').value=G.mix.bass;
-    $('kVol').value=G.mix.keys;
+    if(DJ.chords) $('kVol').value=G.mix.keys;
     applyMixer();
     var bv=$('mixBassV'), kv=$('kVolV');
     if(bv) bv.textContent=G.mix.bass;

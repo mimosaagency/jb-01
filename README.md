@@ -70,7 +70,7 @@ Verified over ~9,000 simulated bars (about 4.5 hours) across all three:
 
 ### Playing along with it
 
-Auto Set owns the drums, the bass and four shared knobs — never your keys, mic,
+Auto Set owns the drums and the bass — never your keys, mic,
 loop or mixer. It's a rhythm section that never stops. And it gives you the bar
 back when you reach in:
 
