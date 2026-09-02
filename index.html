@@ -914,7 +914,11 @@ function schedule(s,t){
   if(DJ.on && chordSeq[s] && DJ.chordNow.length){
     var CG=GENRES[DJ.genre], cv=CG.chordVel||0.30;
     var ct=t+(CG.chordPush||0)*stepDur();
-    for(var c=0;c<DJ.chordNow.length;c++) keysVoice(ct,DJ.chordNow[c],cv);
+    /* chordSeq[s] is how many notes this stab gets — taken from the top, so a
+       fragment is the colour tones rather than the bottom of the voicing */
+    var nn=Math.min(chordSeq[s],DJ.chordNow.length);
+    var sel=DJ.chordNow.slice(DJ.chordNow.length-nn);
+    for(var c=0;c<sel.length;c++) keysVoice(ct,sel[c],cv);
   }
   if(armed && s===0){
     armed=false;
@@ -1141,7 +1145,7 @@ var GENRES={
 };
 var chordSeq=new Array(STEPS).fill(0);   /* which steps carry a stab */
 var DJ={on:false,bar:0,secN:0,sec:'intro',left:10,e:0.12,eT:0.18,base:0,genre:'techno',
-        pending:null,xfade:0,prog:[0,0,0,0],chordNow:[],
+        pending:null,xfade:0,prog:[0,0,0,0],chordNow:[],chordPrev:null,
         cut:18000,dlyA:0,swA:0,bcutA:900,bpmA:138};
 var DJC={cut:18000,dly:0,sw:0,bcut:1200,bpm:138};  /* float shadows of the sliders */
 /* ---- playing along with the machine ----
@@ -1241,23 +1245,12 @@ function djCompose(){
     }
   }
 
-  /* ---- chords ----
-     House lives on these; techno uses one as a stab and rave as a hook. The
-     pitches come from the bar's chord in djWrite, this is only the rhythm. */
-  if(e>g.chord){
-    var cr = (G.chord==='seventh')
-        ? djPick([[2,10],[2,6,14],[2,10,11],[6,14],[2,6,10,14],[2,3,10]])
-      : (G.chord==='hoover')
-        ? djPick([[0],[0,8],[12],[0,12]])                        /* a hook on the bar */
-        : djPick([[2],[10],[6]]);                                /* one stab, rare */
-    for(var c=0;c<cr.length;c++) chordSeq[cr[c]]=1;
-  }
+  /* chords are generated per bar in djWrite, not frozen into the phrase */
 
   DJ_EDITS={};       /* new phrase, new composition — hand edits expire here */
   /* keep this phrase so the next seven bars can repeat it verbatim */
   DJ.core=pattern.map(function(x){ return x.slice(); });
   DJ.coreB=bassSeq.slice();
-  DJ.coreC=chordSeq.slice();
   DJ.genE=e;
 }
 
@@ -1269,12 +1262,16 @@ function djWrite(){
   }else{
     for(i=0;i<TRACKS.length;i++)
       for(s=0;s<STEPS;s++) pattern[i][s]=DJ.core[i][s];
-    for(s=0;s<STEPS;s++){ bassSeq[s]=DJ.coreB[s]; chordSeq[s]=DJ.coreC[s]; }
+    for(s=0;s<STEPS;s++) bassSeq[s]=DJ.coreB[s];
   }
   /* The chord changes every bar even though the drum phrase repeats — that is
      what makes house feel like it is going somewhere and techno feel like a
      loop, because techno's progression is four bars of the same degree. */
-  DJ.chordNow=djChordNotes(DJ.prog[DJ.bar%4]);
+  DJ.chordNow=djVoice(DJ.prog[DJ.bar%4], DJ.chordPrev);
+  DJ.chordPrev=DJ.chordNow;
+  djChordRhythm();
+  /* the progression itself turns over more often than a section does */
+  if((DJ.bar%8)===0 && djIf(0.45)) DJ.prog=djProgression();
   function put(t,st,v){ if(st>=0&&st<STEPS) pattern[t][st]=v; }
 
   /* the fill is the reason it sounds played rather than looped */
@@ -1337,6 +1334,7 @@ function djReadout(){
 
 /* Diatonic sevenths off the current scale — root, third, fifth, seventh.
    Voiced from MIDI 60 so it sits above the bass and under the hats. */
+/* Spell the chord in root position first... */
 function djChordNotes(deg){
   var G=GENRES[DJ.genre], sc=curScale(), n=sc.length, root=curRoot(), out=[], i, d, oct;
   /* rootless voicings leave the root to the bassline and add the ninth */
@@ -1347,6 +1345,42 @@ function djChordNotes(deg){
     out.push(base+root+sc[((d%n)+n)%n]+oct*12);
   }
   return out;
+}
+/* ...then choose the INVERSION that moves least from the chord before it.
+   Spelling every chord in root position is what made the part sound odd: the
+   top note leaps around instead of stepping, which no keyboard player does. */
+function djVoice(deg,prev){
+  var raw=djChordNotes(deg), best=null, bestCost=1e9, inv, i, v, cost;
+  for(inv=0;inv<raw.length;inv++){
+    v=raw.slice(inv).concat(raw.slice(0,inv).map(function(x){ return x+12; }));
+    cost=0;
+    if(prev&&prev.length){
+      for(i=0;i<Math.min(v.length,prev.length);i++) cost+=Math.abs(v[i]-prev[i]);
+    }else{
+      cost=Math.abs(v[v.length-1]-(raw[0]+12));   /* start compact */
+    }
+    if(cost<bestCost){ bestCost=cost; best=v; }
+  }
+  return best;
+}
+
+/* The rhythm is re-rolled EVERY BAR, not held with the drum phrase — a player
+   varies their right hand while the groove underneath repeats. chordSeq holds
+   how many notes each stab gets, so some are the full stack and some are a
+   two-note fragment. */
+function djChordRhythm(){
+  var G=GENRES[DJ.genre], e=DJ.e, i;
+  chordSeq.fill(0);
+  if(e<=G.gate.chord) return;
+  var cr = (G.chord==='seventh')
+      ? djPick([[2,10],[2,6,14],[2,10,11],[6,14],[2,6,10,14],[2,3,10],[2,6,10],[10,14]])
+    : (G.chord==='hoover')
+      ? djPick([[0],[0,8],[12],[0,12]])
+      : djPick([[2],[10],[6]]);
+  for(i=0;i<cr.length;i++){
+    /* the first stab of the bar is the full chord, the rest are fragments */
+    chordSeq[cr[i]] = (i===0) ? 4 : djPick([2,2,3,4]);
+  }
 }
 /* A progression the genre can live in. House moves; techno mostly does not. */
 function djProgression(){
@@ -1448,7 +1482,7 @@ function djBeginXfade(next){
   djReadout();
 }
 function djLandGenre(){
-  DJ.genre=DJ.pending; DJ.pending=null; DJ.xfade=0;
+  DJ.genre=DJ.pending; DJ.pending=null; DJ.xfade=0; DJ.chordPrev=null;
   djApplyGenre(false);
   DJ.e=0.16;                 /* the new material enters thin and builds */
   DJ.eT=0.42;
@@ -2018,10 +2052,18 @@ selectVoice(0);
 (function initOverlays(){
   var intro=$('intro'), ovl=$('manualOvl'), frame=$('manualFrame');
 
+  /* The door is a front door, not a toll gate: once you have been through it
+     it stays open. Skipping it is safe because audio unlocks on the first
+     control you press anyway — start() calls audio(). Storage can throw in a
+     private window, so the door simply stays if we cannot read it. */
+  var SEEN='jb01-entered';
+  try{ if(localStorage.getItem(SEEN)) intro.hidden=true; }catch(e){}
+
   /* ENTER also unlocks the AudioContext — every browser blocks audio until a
      real gesture, so the door doubles as the permission. */
   function enter(){
     try{ audio(); }catch(e){}
+    try{ localStorage.setItem(SEEN,'1'); }catch(e){}
     intro.classList.add('out');
     setTimeout(function(){ intro.hidden=true; }, 300);
   }

@@ -336,8 +336,9 @@
   <p>Everything works from a plain web address. Running it on your own machine buys you three things: recordings that write straight to a folder instead of the downloads pile, a <b>Show in Finder</b> button that actually opens it, and a microphone that is allowed to work over <code>http://</code>.</p>
 
   <h3>Start the server</h3>
-  <p>Put the files in a folder and run the small Python server that ships alongside them:</p>
-  <p><code>python3 serve.py</code> &mdash; then open <code>http://localhost:8080</code>.</p>
+  <p>Clone the project and run the small Python server that ships with it, pointing it at the folder holding <code>index.html</code>:</p>
+  <p><code>JB01_DIR=$PWD python3 server/serve.py</code> &mdash; then open <code>http://localhost:8080</code>.</p>
+  <p>Without <code>JB01_DIR</code> it serves the folder the script itself is in.</p>
   <p>It serves the page with caching off, accepts the finished <b>.wav</b> on <code>/save</code> and writes it into <code>recordings/</code>, and answers <code>/reveal</code> by opening that file in the Finder. It listens on <code>127.0.0.1</code> only, so nothing is exposed to your network.</p>
   <div class="warn">It must be <code>http://localhost</code>. Opening the file directly with <code>file://</code> loads the page but the browser will block the microphone and Web MIDI, and you will get an instrument with no input.</div>
 
