@@ -1,0 +1,15 @@
+{
+  "name": "JB-01 — smol composer",
+  "short_name": "JB-01",
+  "description": "A drum machine, a bass sequencer, eight keyboard voices and a generative DJ — in one HTML file.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#e6e4dd",
+  "theme_color": "#e6e4dd",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
