@@ -673,13 +673,32 @@ function audio(){
      browsers start it running, which is why this only ever failed on a phone.
      Resuming on creation is the actual fix. */
   if(ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} }
+  iosUnlock();
   return ctx;
+}
+
+/* Safari will not open the output until a buffer has actually been PLAYED from
+   inside a user gesture — resume() alone is not enough on iOS. Every audio
+   library ships this same silent one-frame nudge. */
+function iosUnlock(){
+  if(!ctx) return;
+  try{
+    var b=ctx.createBuffer(1,1,ctx.sampleRate);
+    var src=ctx.createBufferSource();
+    src.buffer=b; src.connect(ctx.destination);
+    if(src.start) src.start(0); else if(src.noteOn) src.noteOn(0);
+    if(ctx.state==='suspended') ctx.resume();
+  }catch(e){}
 }
 
 /* Belt and braces: any touch anywhere resumes a context iOS has parked, and
    iOS also suspends it when the page goes to the background. */
 (function keepAudioAwake(){
-  function wake(){ if(ctx && ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} } }
+  function wake(){
+    if(!ctx) return;
+    if(ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} }
+    iosUnlock();
+  }
   ['touchend','pointerdown','click','keydown'].forEach(function(ev){
     document.addEventListener(ev, wake, true);
   });
@@ -988,13 +1007,12 @@ function paintPlayhead(s){
 var lastAudioState='';
 function audioStatus(){
   var st=$('loopStat'); if(!st) return;
-  var now = !ctx ? 'tap play to start'
-          : (ctx.state!=='running' ? 'audio '+ctx.state+' \u2014 tap again' : '');
-  if(now!==lastAudioState){
-    lastAudioState=now;
-    if(now) st.textContent=now;
-    else if(/^audio |tap play/.test(st.textContent)) st.textContent='idle';
-  }
+  var now = !ctx ? 'no context \u2014 tap AUTO'
+          : (ctx.state!=='running' ? 'audio '+ctx.state
+             : 'ok '+Math.round(ctx.sampleRate/1000)+'k'+(playing?' playing':''));
+  var sec=$('djSec');
+  if(sec && ctx && ctx.state!=='running') sec.textContent=ctx.state;
+  if(now!==lastAudioState){ lastAudioState=now; st.textContent=now; }
 }
 
 function uiLoop(){
