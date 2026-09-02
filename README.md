@@ -52,8 +52,18 @@ A live trace, one line every four seconds:
 The filter opening 2k → 10k while the delay dries out and the parts pile in —
 that's the machine doing what a DJ does with a filter knob.
 
-Three genres: **techno** (130, A minor), **house** (124, swung, F dorian),
-**dub** (120, sparse, long delay).
+Three characters, and they differ in more than tempo — each has its own rule for
+which voices may enter and in what order, its own job for the bass, its own drum
+tuning and its own pace of change:
+
+| | | |
+|---|---|---|
+| **techno** | 138, no swing, A minor | opens with drums alone; the kick owns the low end so the bass is ~5× sparser than house's, and sections run long |
+| **rave** | 148, no swing, F# minor | harder and faster, almost no bass at all, a stab carries the hook |
+| **house** | 122, swung, F major | opens with bass and chords; the bass is the tune, sevenths change every bar, sections are short |
+
+Switching genre mid-set is a **mix, not a cut**: it lands on the next eight-bar
+phrase line and the tempo glides across.
 
 Verified over ~9,000 simulated bars (about 4.5 hours) across all three:
 **zero exceptions, zero silent bars**, thinnest bar 6 hits.

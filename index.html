@@ -512,8 +512,8 @@
       <button class="btn" id="auto">AUTO</button>
       <select class="btn" id="djGenre">
         <option value="techno">TECHNO</option>
+        <option value="rave">RAVE</option>
         <option value="house">HOUSE</option>
-        <option value="dub">DUB</option>
       </select>
       <button class="btn rec" id="recSess">REC</button>
     </div>
@@ -911,6 +911,9 @@ function schedule(s,t){
     if(v>0 && !muted[i]) TRACKS[i].fn(t,VEL[v]);
   }
   if(bassSeq[s]>=0) bass(t,rowToMidi(bassSeq[s]),stepDur()*0.9);
+  if(DJ.on && chordSeq[s] && DJ.chordNow.length){
+    for(var c=0;c<DJ.chordNow.length;c++) keysVoice(t,DJ.chordNow[c],0.34);
+  }
   if(armed && s===0){
     armed=false;
     setTimeout(function(){
@@ -1047,6 +1050,7 @@ function setDelayTime(){ if(ctx) dly.delayTime.setTargetAtTime(stepDur()*3,ctx.c
 
 $('clear').onclick=function(){
   try{ djStop(); }catch(e){}
+  try{ chordSeq.fill(0); }catch(e){}
   pattern.forEach(function(p){p.fill(0);});
   bassSeq.fill(-1);
   document.querySelectorAll('.cell').forEach(function(c){c.setAttribute('data-v','0');});
@@ -1084,14 +1088,47 @@ var SECTIONS={
   peak     :{bars:[16,28], e:[0.88,1.00], next:['groove','groove','breakdown']},
   breakdown:{bars:[8,16],  e:[0.12,0.24], next:['build','build','groove'], snap:true}
 };
+/* ---- the three characters ----
+   Everything that separates them lives here as data, so djCompose() stays one
+   piece of code. `gate` is the energy each voice must reach before it is
+   allowed to play at all — that single table is what makes techno open with
+   drums and house open with bass and chords. */
 var GENRES={
-  techno:{bpm:130, swing:2,  scale:'minor',     root:9, hat16:0.62, cow:1},
-  house :{bpm:124, swing:18, scale:'dorian',    root:5, hat16:0.50, cow:0},
-  dub   :{bpm:120, swing:8,  scale:'penta_min', root:2, hat16:0.80, cow:0}
+  techno:{ /* rolling, raw, hypnotic: drum-led, the low end is the kick */
+    bpm:138, swing:0, scale:'minor', root:9, keys:'pluck',
+    secScale:2.0,                      /* sections run twice as long */
+    gate:{kick:.14,hat:.06,ohat:.40,clap:.56,snare:.88,rim:.58,tom:.76,cow:.99,
+          bass:.62,chord:.78},
+    hat16:.55, bass:'sub', chord:'stab',
+    flt:{base:600,span:15000,exp:1.5}, dly:{base:14,span:46},
+    kit:[[-3,165,115],[0,90,90],[-2,120,100],[2,75,95],
+         [0,140,100],[-4,130,90],[0,80,85],[0,100,70]]},
+
+  rave:{  /* hard and fast: saturated kick, a stab for a hook, no bassline */
+    bpm:148, swing:0, scale:'minor', root:6, keys:'stab',
+    secScale:1.4,
+    gate:{kick:.10,hat:.05,ohat:.34,clap:.44,snare:.72,rim:.50,tom:.62,cow:.99,
+          bass:.75,chord:.60},
+    hat16:.42, bass:'sub', chord:'hoover',
+    flt:{base:900,span:17100,exp:1.3}, dly:{base:6,span:22},
+    kit:[[-5,190,130],[2,80,100],[0,110,115],[4,60,105],
+         [2,120,110],[-2,110,95],[3,70,95],[0,90,80]]},
+
+  house:{ /* warm, chordal, old school — the bass IS the tune */
+    bpm:122, swing:22, scale:'major', root:5, keys:'organ',
+    secScale:0.8,                      /* changes every eight bars, not thirty */
+    gate:{kick:.18,hat:.08,ohat:.44,clap:.34,snare:.52,rim:.64,tom:.70,cow:.99,
+          bass:.05,chord:.10},
+    hat16:.50, bass:'walk', chord:'seventh',
+    flt:{base:800,span:17200,exp:1.7}, dly:{base:10,span:30},
+    kit:[[1,85,100],[0,110,85],[2,150,110],[0,90,90],
+         [-1,110,95],[0,120,85],[0,95,80],[0,100,75]]}
 };
+var chordSeq=new Array(STEPS).fill(0);   /* which steps carry a stab */
 var DJ={on:false,bar:0,secN:0,sec:'intro',left:10,e:0.12,eT:0.18,base:0,genre:'techno',
-        cut:18000,dlyA:0,swA:0,bcutA:900};
-var DJC={cut:18000,dly:0,sw:0,bcut:1200};   /* float shadows of the sliders */
+        pending:null,prog:[0,0,0,0],chordNow:[],
+        cut:18000,dlyA:0,swA:0,bcutA:900,bpmA:138};
+var DJC={cut:18000,dly:0,sw:0,bcut:1200,bpm:138};  /* float shadows of the sliders */
 /* ---- playing along with the machine ----
    Auto Set rewrites the grid every bar, so anything you click would vanish
    within one bar. These two overrides give you the bar back:
@@ -1109,49 +1146,52 @@ function djSection(){
   DJ.secN++;                         /* a new section hands the knobs back */
   DJ.sec=djPick(SECTIONS[DJ.sec].next);
   var S=SECTIONS[DJ.sec];
-  DJ.left=Math.round((S.bars[0]+Math.random()*(S.bars[1]-S.bars[0]))/8)*8 || 8;
+  var G=GENRES[DJ.genre];
+  var raw=(S.bars[0]+Math.random()*(S.bars[1]-S.bars[0]))*(G?G.secScale:1);
+  DJ.left=Math.round(raw/8)*8 || 8;   /* techno dwells, house moves */
   DJ.fresh=true;
   DJ.eT=S.e[0]+Math.random()*(S.e[1]-S.e[0]);
   if(S.snap) DJ.e=DJ.eT;              /* a breakdown cuts. It does not fade. */
   if(djIf(0.34)) DJ.base=djPick([0,0,0,2,3,4]);   /* move the key centre */
+  DJ.prog=djProgression();
 }
 
 /* compose FRESH material. Called once per 8-bar phrase, not once per bar —
    a groove that never repeats is not a groove, it is a nervous tic. */
 function djCompose(){
-  var e=DJ.e, G=GENRES[DJ.genre], s;
+  var e=DJ.e, G=GENRES[DJ.genre], s, g=G.gate;
   for(var i=0;i<TRACKS.length;i++) pattern[i].fill(0);
+  chordSeq.fill(0);
   function put(t,st,v){ if(st>=0&&st<STEPS) pattern[t][st]=v; }
 
   /* kick — the spine. Only a breakdown is allowed to take it away. */
-  if(e>0.16){
-    if(e<0.28){ put(0,0,3); put(0,8,2); }
+  if(e>g.kick){
+    if(e<g.kick+0.12){ put(0,0,3); put(0,8,2); }
     else{
       for(s=0;s<STEPS;s+=4) put(0,s,3);
-      if(DJ.genre==='house'&&e<0.75&&djIf(0.14)) put(0,12,0);
-      if(e>0.78&&djIf(0.30)) put(0,14,1);
+      if(DJ.genre==='house'&&e<0.75&&djIf(0.14)) put(0,12,0);   /* the house gap */
+      if(e>0.78&&djIf(DJ.genre==='rave'?0.5:0.30)) put(0,14,1);
     }
   }
   /* closed hat — the clock. Density is the loudest signal of energy there is. */
-  if(e>0.06){
+  if(e>g.hat){
     if(e<0.42){ [2,6,10,14].forEach(function(x){ put(3,x,1); }); }
     else if(e<G.hat16){ for(s=0;s<STEPS;s+=2) put(3,s,(s%4)?2:1); }
     else { for(s=0;s<STEPS;s++) put(3,s,(s%4===2)?3:((s%2)?1:2)); }
   }
   /* open hat — the offbeat lift */
-  if(e>0.46){
-    var oh=(e>0.68)?[2,6,10,14]:[2,10];
-    oh.forEach(function(x){ put(4,x,e>0.68?3:2); });
-    if(DJ.genre==='dub'&&djIf(0.5)) put(4,6,0);
+  if(e>g.ohat){
+    var oh=(e>g.ohat+0.24)?[2,6,10,14]:[2,10];
+    oh.forEach(function(x){ put(4,x,e>g.ohat+0.24?3:2); });
   }
   /* clap + snare — the backbeat */
-  if(e>0.40){ put(2,12,3); if(e>0.54||DJ.genre==='house') put(2,4,3); }
-  if(DJ.genre==='house'&&e>0.58){ put(1,4,2); put(1,12,2); }
-  else if(e>0.80&&djIf(0.5)) put(1,djPick([7,15]),1);
+  if(e>g.clap){ put(2,12,3); if(e>g.clap+0.14||DJ.genre==='house') put(2,4,3); }
+  if(DJ.genre==='house'&&e>g.snare){ put(1,4,2); put(1,12,2); }
+  else if(e>g.snare&&djIf(0.5)) put(1,djPick([7,15]),1);
   /* the spice, all rationed by energy */
-  if(e>0.60){ [3,7,11,15].forEach(function(x){ if(djIf(0.32)) put(6,x,1); }); }
-  if(e>0.72&&djIf(0.55)) put(5,djPick([6,11,14]),2);
-  if(G.cow&&e>0.88&&djIf(0.30)) put(7,djPick([6,10]),2);
+  if(e>g.rim){ [3,7,11,15].forEach(function(x){ if(djIf(0.32)) put(6,x,1); }); }
+  if(e>g.tom&&djIf(0.55)) put(5,djPick([6,11,14]),2);
+  if(e>g.cow&&djIf(0.30)) put(7,djPick([6,10]),2);
   /* everything above here tops out near 0.65 — these are the peak-only moves */
   if(e>0.80){
     put(2,14,1);                                    /* clap echo into the bar line */
@@ -1162,25 +1202,47 @@ function djCompose(){
     if(djIf(0.50)) put(4,15,2);
   }
 
-  /* bass — offbeats between the kicks, walking the current key centre */
+  /* ---- bass ----
+     SUB (techno, rave): the kick owns the low end, so a bassline only competes
+     with it. Gated high, two hits between the kicks, root only, never moves.
+     WALK (house): the bass IS the tune. In from the first bar, syncopated,
+     octaves, following the chord underneath. */
   bassSeq.fill(-1);
-  if(e>0.05){
-    var rh = (e<0.35) ? [2,10]
-           : (e<0.60) ? djPick([[2,6,10,14],[0,6,10,14],[2,10,14]])
-                      : djPick([[2,6,10,14],[2,3,6,10,11,14],[2,6,10,14,15],[0,2,6,8,10,14]]);
-    if(DJ.genre==='house'&&e>=0.35) rh=djPick([[2,6,10,14],[2,6,10,13,14]]);
-    for(var b=0;b<rh.length;b++){
-      var row=DJ.base;
-      if(b>0&&djIf(0.26)) row=DJ.base+djPick([2,3,4,5]);
-      if(djIf(0.08)) row=DJ.base+5;
-      bassSeq[rh[b]]=Math.max(0,Math.min(ROWS-1,row));
+  if(e>g.bass){
+    var rh, b, row;
+    if(G.bass==='sub'){
+      rh=(e>0.85)?[2,6,10,14]:[2,10];
+      for(b=0;b<rh.length;b++) bassSeq[rh[b]]=DJ.base;      /* root, always */
+    }else{
+      rh = (e<0.30) ? djPick([[2,10],[0,6,10]])
+         : (e<0.60) ? djPick([[2,6,10,14],[0,6,10,14],[2,10,14]])
+                    : djPick([[2,3,6,10,11,14],[2,6,10,14,15],[0,2,6,8,10,14]]);
+      for(b=0;b<rh.length;b++){
+        row=DJ.base;
+        if(b>0&&djIf(0.34)) row=DJ.base+djPick([2,3,4]);
+        if(djIf(0.22)) row=DJ.base+(G.scale==='major'?4:5);  /* the octave lift */
+        bassSeq[rh[b]]=Math.max(0,Math.min(ROWS-1,row));
+      }
     }
+  }
+
+  /* ---- chords ----
+     House lives on these; techno uses one as a stab and rave as a hook. The
+     pitches come from the bar's chord in djWrite, this is only the rhythm. */
+  if(e>g.chord){
+    var cr = (G.chord==='seventh')
+        ? djPick([[2,6,10,14],[2,10],[2,6,10,11,14],[0,6,10]])   /* offbeat, constant */
+      : (G.chord==='hoover')
+        ? djPick([[0],[0,8],[12],[0,12]])                        /* a hook on the bar */
+        : djPick([[2],[10],[6]]);                                /* one stab, rare */
+    for(var c=0;c<cr.length;c++) chordSeq[cr[c]]=1;
   }
 
   DJ_EDITS={};       /* new phrase, new composition — hand edits expire here */
   /* keep this phrase so the next seven bars can repeat it verbatim */
   DJ.core=pattern.map(function(x){ return x.slice(); });
   DJ.coreB=bassSeq.slice();
+  DJ.coreC=chordSeq.slice();
   DJ.genE=e;
 }
 
@@ -1192,8 +1254,12 @@ function djWrite(){
   }else{
     for(i=0;i<TRACKS.length;i++)
       for(s=0;s<STEPS;s++) pattern[i][s]=DJ.core[i][s];
-    for(s=0;s<STEPS;s++) bassSeq[s]=DJ.coreB[s];
+    for(s=0;s<STEPS;s++){ bassSeq[s]=DJ.coreB[s]; chordSeq[s]=DJ.coreC[s]; }
   }
+  /* The chord changes every bar even though the drum phrase repeats — that is
+     what makes house feel like it is going somewhere and techno feel like a
+     loop, because techno's progression is four bars of the same degree. */
+  DJ.chordNow=djChordNotes(DJ.prog[DJ.bar%4]);
   function put(t,st,v){ if(st>=0&&st<STEPS) pattern[t][st]=v; }
 
   /* the fill is the reason it sounds played rather than looped */
@@ -1212,11 +1278,12 @@ function djWrite(){
   }
 
   /* where the knobs should be heading. djGlide walks them there smoothly. */
-  var G=GENRES[DJ.genre];
-  DJ.cut  = 700+Math.pow(e,1.6)*17300;
-  DJ.dlyA = 10+(1-e)*44;                 /* breakdowns get dubby, peaks get dry */
+  var G=GENRES[DJ.genre], F=G.flt, D=G.dly;
+  DJ.cut  = F.base+Math.pow(e,F.exp)*F.span;
+  DJ.dlyA = D.base+(1-e)*D.span;         /* techno stays wet, rave stays dry */
   DJ.swA  = G.swing;
   DJ.bcutA= 300+e*1500;
+  DJ.bpmA = G.bpm;
 }
 
 function djPaint(){
@@ -1231,7 +1298,8 @@ function djPaint(){
 }
 
 function djReadout(){
-  var el=$('djSec'); if(el) el.textContent=DJ.on?DJ.sec:'off';
+  var el=$('djSec');
+  if(el) el.textContent = !DJ.on ? 'off' : (DJ.pending ? '\u2192'+DJ.pending : DJ.sec);
   var a=$('djArc');
   if(a){
     var n=a.children.length, lit=DJ.on?Math.round(DJ.e*n):0;
@@ -1250,8 +1318,27 @@ function djReadout(){
   }
 }
 
+/* Diatonic sevenths off the current scale — root, third, fifth, seventh.
+   Voiced from MIDI 60 so it sits above the bass and under the hats. */
+function djChordNotes(deg){
+  var sc=curScale(), n=sc.length, root=curRoot(), out=[], i, d, oct;
+  for(i=0;i<4;i++){
+    d=deg+i*2; oct=Math.floor(d/n);
+    out.push(60+root+sc[((d%n)+n)%n]+oct*12);
+  }
+  return out;
+}
+/* A progression the genre can live in. House moves; techno mostly does not. */
+function djProgression(){
+  var G=GENRES[DJ.genre];
+  if(G.chord==='seventh') return djPick([[0,3,4,3],[0,5,3,4],[1,4,0,0],[0,4,5,4]]);
+  if(G.chord==='hoover')  return djPick([[0,0,0,0],[0,0,5,5]]);
+  return [0,0,0,0];
+}
+
 /* the only per-bar entry point — called from schedule() on step 0 */
 function djBar(){
+  if(DJ.pending && (DJ.bar%8)===0) djLandGenre();
   DJ.left--;
   if(DJ.left<=0) djSection();
   DJ.e += (DJ.eT-DJ.e)*0.22;
@@ -1264,7 +1351,7 @@ var djFrame=0;
 function djGlide(){
   if(!DJ.on) return;
   if((++djFrame)%3) return;          /* 20fps is plenty for a filter sweep */
-  [['cut','cut'],['dly','dlyA'],['sw','swA'],['bcut','bcutA']].forEach(function(pr){
+  [['cut','cut'],['dly','dlyA'],['sw','swA'],['bcut','bcutA'],['bpm','bpmA']].forEach(function(pr){
     var cur=DJC[pr[0]], to=DJ[pr[1]];
     var n=cur+(to-cur)*0.05;
     if(Math.abs(to-cur)<0.02) n=to;
@@ -1279,12 +1366,34 @@ function djGlide(){
   });
 }
 
-function djApplyGenre(){
+function djApplyGenre(snapTempo){
   var G=GENRES[DJ.genre]; if(!G) return;
-  $('bpm').value=G.bpm; $('bpm').dispatchEvent(new Event('input',{bubbles:true}));
+  DJ.bpmA=G.bpm;
+  if(snapTempo){                       /* engaging AUTO sets the tempo outright */
+    DJC.bpm=G.bpm;
+    $('bpm').value=G.bpm; $('bpm').dispatchEvent(new Event('input',{bubbles:true}));
+  }
   $('kScale').value=G.scale; $('kRoot').value=String(G.root);
   relabelRoll();
-  DJC.sw=G.swing; DJ.swA=G.swing;
+  $('kSound').value=G.keys;
+  DJ.swA=G.swing;
+  /* the kit is part of the character: techno's kick is tuned down and long,
+     house's is tighter and higher. */
+  if(G.kit) G.kit.forEach(function(k,i){
+    VOICE_P[i]={tune:k[0],decay:k[1],level:k[2],mute:false};
+  });
+  selectVoice(selVoice);
+  DJ.prog=djProgression();
+}
+
+/* A genre change is a mix, not a cut: it lands on the next phrase line, the
+   tempo glides across, and the energy dips for a bar so it reads as a blend. */
+function djLandGenre(){
+  DJ.genre=DJ.pending; DJ.pending=null;
+  djApplyGenre(false);
+  DJ.e=Math.min(DJ.e,0.34);
+  DJ.fresh=true;
+  djReadout();
 }
 
 function djStop(){
@@ -1295,8 +1404,8 @@ function djStop(){
 $('auto').onclick=function(){
   if(DJ.on){ djStop(); return; }
   DJ.on=true; this.classList.add('on');
-  DJ.genre=$('djGenre').value;
-  djApplyGenre();
+  DJ.genre=$('djGenre').value; DJ.pending=null;
+  djApplyGenre(true);
   DJ.sec='intro'; DJ.left=8; DJ.e=0.12; DJ.eT=0.20; DJ.bar=0; DJ.base=0;
   DJ.fresh=true; DJ.core=null;
   DJC.cut=+$('cut').value; DJC.dly=+$('dly').value; DJC.bcut=+$('bcut').value;
@@ -1304,8 +1413,9 @@ $('auto').onclick=function(){
   if(!playing) start();
 };
 $('djGenre').onchange=function(){
-  DJ.genre=this.value;
-  if(DJ.on){ djApplyGenre(); djWrite(); djPaint(); djReadout(); }
+  if(!DJ.on){ DJ.genre=this.value; djApplyGenre(true); return; }
+  DJ.pending=this.value;            /* lands on the next phrase line */
+  djReadout();
 };
 
 document.addEventListener('keydown',function(e){
@@ -1801,7 +1911,7 @@ $('vReset').onclick=function(){
 };
 /* grabbing one of the four shared knobs takes it off Auto Set until the
    next section. djWriting marks the events Auto Set raises itself. */
-['cut','dly','sw','bcut'].forEach(function(id){
+['cut','dly','sw','bcut','bpm'].forEach(function(id){
   var el=$(id); if(!el) return;
   el.addEventListener('input',function(){ if(!djWriting) djTakeOver(id); });
 });
