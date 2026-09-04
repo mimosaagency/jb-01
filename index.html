@@ -189,6 +189,17 @@
     min-height:0;background:#f6f5f1}
   .cell.beat{background:#ecebe4}
   .cell:hover{background:#fff}
+  /* The row names are gone, so the row itself has to say which voice it is.
+     Hovering warms the whole track; the selected voice stays warm, so the
+     strip below and the row above always agree about what you are editing. */
+  .trk:hover .cell{background:#fbfaf7}
+  .trk:hover .cell.beat{background:#f2f1ea}
+  .trk.sel .cell{background:#efeee6}
+  .trk.sel .cell.beat{background:#e7e5dd}
+  .trk.hot .cell{background:#fbfaf7}
+  .trk.hot .cell.beat{background:#f2f1ea}
+  .trk.sel:hover .cell{background:#f4f3ec}
+  .trk.sel:hover .cell.beat{background:#ecebe3}
   .cell b{display:block;border-radius:50%;width:0;height:0}
   .cell[data-v="1"] b{width:8px;height:8px;background:var(--ink-3)}
   .cell[data-v="2"] b{width:13px;height:13px;background:var(--ink-2)}
@@ -243,12 +254,16 @@
   .rcell{cursor:pointer;background:#f6f5f1}
   .rcell.beat{background:#ecebe4}
   .rcell:hover{background:#fff}
+  /* the roll lost its note labels too, so the row says which note it is */
+  .rrow:hover .rcell{background:#fbfaf7}
+  .rrow:hover .rcell.beat{background:#f2f1ea}
+  .rrow:hover .rcell.on{background:var(--ink)}
   .rcell.on{background:var(--ink)}
   .rcell.play{box-shadow:inset 0 0 0 2px var(--orange)}
   /* three controls on the same six-column rhythm as the voice strip opposite */
+  /* six cells, exactly matching the voice strip opposite */
   .strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
     grid-auto-rows:44px;gap:8px;flex:0 0 auto;margin-top:8px}
-  .strip .sl{grid-column:span 2}
 
   /* ---- half row: mixer | keys ---- */
   .halfrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:0 0 auto}
@@ -314,7 +329,11 @@
   #statMark label{font:700 12px/1 var(--mono);color:var(--ink);letter-spacing:.02em}
 
   @media (min-width:821px){
-    .deck{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+    /* A wider seam down the middle separates the two halves of the deck —
+       the mix on the left, the instrument and its utilities on the right —
+       without needing a rule or a label to say so. Column 7 is the gutter. */
+    .deck{display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr)) 10px repeat(6,minmax(0,1fr));
       grid-template-rows:repeat(3,71px);gap:8px;padding:8px;
       background:var(--card);border-radius:2px}
     /* the three containers stop being boxes and let their cells sit on the lattice */
@@ -335,15 +354,19 @@
     .deck .keysbar>*{grid-row:1;width:100%;height:100%}
     .deck .keysbar>.sl{align-content:center}
     .deck #kNow{display:flex;align-items:center;justify-content:flex-end}
-    .deck .keysbar>*:nth-child(1){grid-column:7} .deck .keysbar>*:nth-child(2){grid-column:8}
-    .deck .keysbar>*:nth-child(3){grid-column:9} .deck .keysbar>*:nth-child(4){grid-column:10}
-    .deck .keysbar>*:nth-child(5){grid-column:11} .deck .keysbar>*:nth-child(6){grid-column:12}
+    .deck .keysbar>*:nth-child(1){grid-column:8} .deck .keysbar>*:nth-child(2){grid-column:9}
+    .deck .keysbar>*:nth-child(3){grid-column:10} .deck .keysbar>*:nth-child(4){grid-column:11}
+    .deck .keysbar>*:nth-child(5){grid-column:12} .deck .keysbar>*:nth-child(6){grid-column:13}
 
     .deck>.foot>.btn{grid-row:2;width:100%;height:100%;min-width:0}
-    #rec{grid-column:7} #loopClr{grid-column:8} #inDev{grid-column:9}
-    #mon{grid-column:10} .deck>.foot>a.btn{grid-column:11} #midiMode{grid-column:12}
+    #rec{grid-column:8} #loopClr{grid-column:9} #inDev{grid-column:10}
+    #mon{grid-column:11} #manualBtn{grid-column:12} #midiMode{grid-column:13}
 
-    .deck .stat{grid-row:3;grid-column:span 2}
+    /* three readouts each side of the seam. Scoped to the footer: the note
+       cell up in the keys row is styled like a readout but placed by the
+       keysbar rules, not dragged down into row three. */
+    .deck>.foot>.stat{grid-row:3;grid-column:span 2}
+    .deck>.foot>.stat:nth-of-type(4){grid-column:8/span 2}
   }
 
   /* ---- overlays: the door in, and the manual ---- */
@@ -390,6 +413,21 @@
     #auto,#djGenre,#recSess{order:2}
     .head .lcd{order:3;grid-column:1/-1}
     .head .sliders{order:4}
+  }
+
+  /* A short desktop window — half a screen, or a laptop — was giving the grid
+     what was left after a three-row head and a 245px deck. Below 860px tall the
+     fixed-height rows give some of it back; the grid is the part you work in. */
+  @media (min-width:821px) and (max-height:860px){
+    .deck{grid-template-rows:repeat(3,58px)}
+    .head .sliders .sl{height:36px}
+    .vstrip,.strip{grid-auto-rows:38px}
+    .fader{height:38px}
+    .ch .mute{font-size:8px}
+  }
+  @media (min-width:821px) and (max-height:700px){
+    .deck{grid-template-rows:repeat(3,50px)}
+    .wrap{gap:6px}
   }
 
   /* ================= compact mode =================
@@ -476,10 +514,15 @@
     .ch .mute{height:32px}
     .keysbar{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:48px;gap:8px}
     .keysbar>*{height:100%}
+    /* The footer's DOM interleaves controls and readouts; the desk layout
+       reorders them and this did not, which left LIVE stranded on a row of its
+       own and a hole beside MANUAL. Same ordering here: controls, then reads. */
     .deck>.foot{grid-template-columns:repeat(3,minmax(0,1fr));
       grid-auto-rows:48px;gap:8px}
-    .deck>.foot>.btn{width:100%;height:100%}
-    .deck .stat{grid-column:span 3;height:48px}
+    .deck>.foot>.btn{width:100%;height:100%;order:1}
+    .deck .stat{order:2;grid-column:span 1;height:48px}
+    .deck .stat label{font-size:8px;letter-spacing:.08em}
+    .deck .stat em{font-size:8.5px}
     .wrap[data-tab="mix"] .head .sliders{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
   @media (max-width:820px) and (orientation:landscape){
@@ -500,7 +543,7 @@
   .meter{width:100%;height:5px;background:var(--well);overflow:hidden}
   .meter i{display:block;height:100%;width:0;background:var(--ink)}
   #loopStat{font:700 7.5px/1 var(--font);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
-  #synthNote,#kNow{font:700 9px/1 var(--mono);color:var(--ink)}
+  #synthNote{font:700 9px/1 var(--mono);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -580,9 +623,12 @@
       <h2><span></span><span id="synthNote">—</span></h2>
       <div class="roll" id="roll"></div>
       <div class="strip">
+        <div class="vsel" id="bSel" title="the bass voice"><em>BASS</em></div>
         <div class="sl"><label>cutoff</label><input type="range" id="bcut" min="120" max="6000" value="1200"><em id="bcutV">1200</em></div>
         <div class="sl"><label>reso</label><input type="range" id="bres" min="0" max="24" value="8"><em id="bresV">8</em></div>
         <div class="sl"><label>decay</label><input type="range" id="bdec" min="5" max="100" value="40"><em id="bdecV">40</em></div>
+        <button class="btn sm" id="bMute">MUTE</button>
+        <button class="btn sm" id="bReset">RESET</button>
       </div>
     </div>
   </div>
@@ -623,7 +669,7 @@
     <button class="btn sm on" id="kLock" title="every key snaps to the scale">LOCK</button>
 
     <div class="sl"><label>octave</label><input type="range" id="kOct" min="-2" max="2" value="0" step="1"><em id="kOctV">0</em></div>
-    <span id="kNow" style="font:600 12px/1 var(--mono);color:var(--ink);min-width:190px"></span>
+    <div class="stat" id="kNowCell"><label>note</label><em id="kNow">&mdash;</em></div>
     
   </div>
 
@@ -1094,6 +1140,19 @@ $('grid').addEventListener('click',function(e){
   }
 
 });
+
+/* Hovering a row names its note in the NOTE readout — the labels are gone from
+   the left of the roll, so this is how you know what you are about to place. */
+(function rollHover(){
+  var roll=$('roll'), out=$('kNow'), held='\u2014';
+  roll.addEventListener('pointerover',function(e){
+    var c=e.target.closest('.rcell'); if(!c) return;
+    out.textContent=midiName(rowToMidi(+c.getAttribute('data-r')));
+  });
+  roll.addEventListener('pointerleave',function(){ out.textContent=held; });
+  /* whatever the keyboard last played is what it goes back to */
+  window.__setNote=function(t){ held=t; out.textContent=t; };
+})();
 
 $('roll').addEventListener('click',function(e){
   var c=e.target.closest('.rcell'); if(!c) return;
@@ -1628,7 +1687,8 @@ document.addEventListener('keydown',function(e){
           } else {
             var m2=snap(note);
             keysVoice(t,m2,Math.max(0.3,vel));
-            $('kNow').textContent=midiName(m2)+'   \u00b7   vel '+d[2];
+            if(window.__setNote) window.__setNote(midiName(m2)+' \u00b7 v'+d[2]);
+            else $('kNow').textContent=midiName(m2);
             $('synthNote').textContent=midiName(m2);
           }
         };
@@ -2043,6 +2103,8 @@ $('kOct').addEventListener('input',function(){ var e=$('kOctV'); if(e) e.textCon
 /* ============ per-voice editor ============ */
 function selectVoice(i){
   selVoice=i;
+  var rows=document.querySelectorAll('.grid .trk');
+  for(var r=0;r<rows.length;r++) rows[r].classList.toggle('sel', r===i);
   var p=P(i);
   $('vName').textContent=TRACKS[i].name;
   $('vTune').value=p.tune;   $('vTuneV').textContent=p.tune;
@@ -2109,8 +2171,45 @@ $('vReset').onclick=function(){
   });
 })();
 
+/* The bass strip mirrors the drum strip: a name cell, three parameters, a mute
+   and a reset. MUTE is the same bass bus the mixer mutes, so the two stay in
+   step rather than disagreeing about whether the bass is on. */
+$('bMute').onclick=function(){
+  MUTED.bass=!MUTED.bass;
+  this.classList.toggle('on',MUTED.bass);
+  var m=document.querySelector('.ch[data-ch="bass"]');
+  if(m){
+    var mb=m.querySelector('.mute');
+    if(mb) mb.classList.toggle('on',MUTED.bass);
+    m.classList.toggle('muted',MUTED.bass);
+  }
+  applyMixer();
+};
+$('bReset').onclick=function(){
+  [['bcut',1200],['bres',8],['bdec',40]].forEach(function(d){
+    var el=$(d[0]); el.value=d[1];
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+};
+/* keep the strip's MUTE in step when the mixer's M is the one pressed */
+(function syncBassMute(){
+  var m=document.querySelector('.ch[data-ch="bass"] .mute');
+  if(!m) return;
+  m.addEventListener('click',function(){
+    setTimeout(function(){ $('bMute').classList.toggle('on',!!MUTED.bass); },0);
+  });
+})();
+
 /* with the track names gone, the voice cell is the selector */
 $('vSel').onclick=function(){ selectVoice((selVoice+1)%TRACKS.length); previewVoice(); };
+(function markRowFromStrip(){
+  var v=$('vSel');
+  function row(){ return document.querySelectorAll('.grid .trk')[selVoice]; }
+  v.addEventListener('pointerenter',function(){ var r=row(); if(r) r.classList.add('hot'); });
+  v.addEventListener('pointerleave',function(){
+    document.querySelectorAll('.grid .trk.hot').forEach(function(x){ x.classList.remove('hot'); });
+  });
+})();
 selectVoice(0);
 
 /* ============ compact mode ============ */
