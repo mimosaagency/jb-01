@@ -86,7 +86,8 @@ back when you reach in:
 |---|---|
 | Grid | Each cell cycles through four states. Dot size is velocity. |
 | Voice keys | Click the voice cell to change voice; tune, decay and level reshape it. Retune the tom down and shorten its decay and you have a different drum. |
-| Keys | Eight presets. Leave **LOCK** on and every note is in key. |
+| Keys | Eight presets, always snapped to the chosen scale, so every note is in key. |
+| `HOLD` | Sustains a four-note chord in the current key until you press it again. Needs no keyboard, and follows Auto Set into each new key. |
 | Mic | Record a one-bar loop, or run the mic live over the top. |
 | `REC` | Captures the complete mix to a `.wav`, up to 15 minutes. |
 | `JB-01` | Opens the manual. |
