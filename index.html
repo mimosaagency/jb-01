@@ -222,23 +222,23 @@
   .vsel em{font:700 9px/1 var(--mono);font-style:normal;color:var(--ink);
     text-transform:uppercase;letter-spacing:.04em}
 
-  .vstrip .sl,.strip .sl,.keysbar .sl,.head .sliders .sl{
+  .vstrip .sl,.strip .sl,.keysbar .sl,.head .sliders .sl,.sl.fx{
     position:relative;display:block;min-width:0;padding:0;
     border:0;border-radius:2px;background:var(--key);
     overflow:hidden;cursor:ew-resize;touch-action:none}
-  .vstrip .sl:hover,.strip .sl:hover,.keysbar .sl:hover,.head .sliders .sl:hover{background:#e2e0d8}
-  .vstrip .sl::before,.strip .sl::before,.keysbar .sl::before,.head .sliders .sl::before{
+  .vstrip .sl:hover,.strip .sl:hover,.keysbar .sl:hover,.head .sliders .sl:hover,.sl.fx:hover{background:#e2e0d8}
+  .vstrip .sl::before,.strip .sl::before,.keysbar .sl::before,.head .sliders .sl::before,.sl.fx::before{
     content:"";position:absolute;
     left:0;top:0;bottom:0;width:var(--fill,0%);background:var(--ink-3);z-index:1}
-  .vstrip .sl label,.strip .sl label,.keysbar .sl label,.head .sliders .sl label{
+  .vstrip .sl label,.strip .sl label,.keysbar .sl label,.head .sliders .sl label,.sl.fx label{
     position:absolute;inset:0;z-index:2;display:flex;mix-blend-mode:normal;
     align-items:center;justify-content:center;font:700 9px/1 var(--font);
     letter-spacing:.11em;text-transform:uppercase;color:var(--ink);pointer-events:none}
-  .vstrip .sl em,.strip .sl em,.keysbar .sl em,.head .sliders .sl em{
+  .vstrip .sl em,.strip .sl em,.keysbar .sl em,.head .sliders .sl em,.sl.fx em{
     position:absolute;right:6px;bottom:5px;z-index:2;
     font:700 9px/1 var(--mono);font-style:normal;color:var(--ink-2);pointer-events:none}
   .vstrip .sl input[type=range],.strip .sl input[type=range],
-  .keysbar .sl input[type=range],.head .sliders .sl input[type=range]{position:absolute;inset:0;
+  .keysbar .sl input[type=range],.head .sliders .sl input[type=range],.sl.fx input[type=range]{position:absolute;inset:0;
     width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize;z-index:3}
   .vsel em{font:700 10px/1 var(--mono);font-style:normal;color:var(--ink);
     text-transform:uppercase;letter-spacing:.04em}
@@ -334,8 +334,19 @@
        without needing a rule or a label to say so. Column 7 is the gutter. */
     .deck{display:grid;
       grid-template-columns:repeat(6,minmax(0,1fr)) 10px repeat(6,minmax(0,1fr));
-      grid-template-rows:repeat(3,71px);gap:8px;padding:8px;
+      grid-template-rows:repeat(4,62px) 92px;gap:8px;padding:8px;
       background:var(--card);border-radius:2px}
+    /* the send row: six cells straight across, under the seam */
+    .deck .fx{grid-row:4}
+    #fClusterC{grid-row:4;grid-column:1/span 2}
+    #fSizeC{grid-row:4;grid-column:3/span 2}
+    #fShapeC{grid-row:4;grid-column:5/span 2}
+    #fBlurC{grid-row:4;grid-column:8/span 2}
+    #fSpinC{grid-row:4;grid-column:10/span 2}
+    #fSendC{grid-row:4;grid-column:12/span 2}
+    /* the field is a display, not a cell: it spans the whole plate
+       directly under the controls that shape it */
+    .deck>.fxstrip{grid-row:5;grid-column:1/-1;height:auto;min-height:0}
     /* the three containers stop being boxes and let their cells sit on the lattice */
     .deck>.halfrow,.deck .mixer,.deck .keysbar,.deck>.foot{display:contents}
 
@@ -365,8 +376,8 @@
     /* three readouts each side of the seam. Scoped to the footer: the note
        cell up in the keys row is styled like a readout but placed by the
        keysbar rules, not dragged down into row three. */
-    .deck>.foot>.stat{grid-row:3;grid-column:span 2}
-    .deck>.foot>.stat:nth-of-type(4){grid-column:8/span 2}
+    .deck>.foot>.stat:not(.fx){grid-row:3;grid-column:span 2}
+    .deck>.foot>.stat:not(.fx):nth-of-type(4){grid-column:8/span 2}
   }
 
   /* ---- overlays: the door in, and the manual ---- */
@@ -397,6 +408,12 @@
   #statMark{cursor:pointer}
   #statMark:hover{background:#cfccc3}
 
+  /* ---- the field: the delay drawn as its taps ---- */
+  .fxstrip{flex:0 0 auto;height:92px;background:var(--step);border-radius:2px;overflow:hidden}
+  .fxstrip canvas{display:block;width:100%;height:100%}
+  .stat.step{cursor:pointer}
+  .stat.step:hover{background:#e2e0d8}
+
   /* ---- tab bar: only exists in compact mode ---- */
   .tabs{display:none;gap:4px;flex:0 0 auto}
   .tabs button{flex:1;height:28px;background:var(--key);color:var(--ink-3);
@@ -419,14 +436,16 @@
      what was left after a three-row head and a 245px deck. Below 860px tall the
      fixed-height rows give some of it back; the grid is the part you work in. */
   @media (min-width:821px) and (max-height:860px){
-    .deck{grid-template-rows:repeat(3,58px)}
+    .deck{grid-template-rows:repeat(4,52px)}
+    .fxstrip{height:74px}
     .head .sliders .sl{height:36px}
     .vstrip,.strip{grid-auto-rows:38px}
     .fader{height:38px}
     .ch .mute{font-size:8px}
   }
   @media (min-width:821px) and (max-height:700px){
-    .deck{grid-template-rows:repeat(3,50px)}
+    .deck{grid-template-rows:repeat(4,46px)}
+    .fxstrip{height:60px}
     .wrap{gap:6px}
   }
 
@@ -471,7 +490,18 @@
     .tabs button{height:28px}
 
     /* panes */
-    .main,.halfrow,.deck>.foot{display:none}
+    .main,.halfrow,.deck>.foot,.fxstrip{display:none}
+    /* the fx pane: the field on top, its six controls two-up beneath. The
+       footer has to come back as a container — unhiding only its children
+       leaves them without a box. */
+    .wrap[data-tab="fx"] .deck{display:flex;flex-direction:column;gap:4px;
+      flex:1 1 auto;min-height:0}
+    .wrap[data-tab="fx"] .fxstrip{display:block;flex:1 1 auto;min-height:110px}
+    .wrap[data-tab="fx"] .deck>.foot{display:grid;flex:0 0 auto;
+      grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:48px;gap:8px}
+    .wrap[data-tab="fx"] .deck>.foot>*{display:none}
+    .wrap[data-tab="fx"] .deck>.foot>.fx{display:block;height:100%}
+    .deck .fx{display:none}
     .divider{display:none}
     .wrap[data-tab="drums"] .main,
     .wrap[data-tab="bass"]  .main{display:block;flex:1 1 auto;min-height:0}
@@ -513,6 +543,9 @@
     .ch .chtop{height:56px}
     .ch .mute{height:32px}
     .keysbar{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:48px;gap:8px}
+    /* the rows are 48px, but a .btn keeps its 28px transport height and sits
+       short and off-centre next to a cell. On these lattices it fills. */
+    .vstrip>.btn,.strip>.btn,.keysbar>.btn,.keysbar>select.btn{height:100%}
     .keysbar>*{height:100%}
     /* The footer's DOM interleaves controls and readouts; the desk layout
        reorders them and this did not, which left LIVE stranded on a row of its
@@ -601,7 +634,7 @@
   </div>
 
   <div class="tabs">
-    <button data-tab="drums" class="on">drums</button><button data-tab="bass">bass</button><button data-tab="mix">mix</button><button data-tab="keys">keys</button>
+    <button data-tab="drums" class="on">drums</button><button data-tab="bass">bass</button><button data-tab="mix">mix</button><button data-tab="keys">keys</button><button data-tab="fx">fx</button>
   </div>
 
   <div class="main">
@@ -634,6 +667,8 @@
   </div>
 
   <div class="deck">
+  <div class="fxstrip"><canvas id="fxfld"></canvas></div>
+
   <div class="halfrow">
   <div class="mixer">
     <div class="ch" data-ch="drums"><div class="chtop"><span class="cn">DRUMS</span><div class="fader"><input type="range" id="mixDrums" min="0" max="150" value="100"><b></b></div><em id="mixDrumsV">100</em></div><button class="mute" data-m="drums">M</button></div><div class="ch" data-ch="bass"><div class="chtop"><span class="cn">BASS</span><div class="fader"><input type="range" id="mixBass" min="0" max="150" value="100"><b></b></div><em id="mixBassV">100</em></div><button class="mute" data-m="bass">M</button></div><div class="ch" data-ch="keys"><div class="chtop"><span class="cn">KEYS</span><div class="fader"><input type="range" id="kVol" min="0" max="150" value="88"><b></b></div><em id="kVolV">88</em></div><button class="mute" data-m="keys">M</button></div><div class="ch" data-ch="mic"><div class="chtop"><span class="cn">MIC</span><div class="fader"><input type="range" id="micVol" min="0" max="150" value="92"><b></b></div><em id="micVolV">92</em></div><button class="mute" data-m="mic">M</button></div><div class="ch" data-ch="loop"><div class="chtop"><span class="cn">LOOP</span><div class="fader"><input type="range" id="loopVol" min="0" max="250" value="120"><b></b></div><em id="loopVolV">120</em></div><button class="mute" data-m="loop">M</button></div><div class="ch" data-ch="master"><div class="chtop"><span class="cn">MASTER</span><div class="fader"><input type="range" id="mst" min="0" max="100" value="70"><b></b></div><em id="mstV">70</em></div><button class="mute" data-m="master">M</button></div>
@@ -696,6 +731,12 @@
     <div class="stat"><label>midi</label><em id="midiStat">—</em></div>
     <div class="stat"><label>latency</label><em id="latOut">—</em></div>
     <div class="stat" id="statMark"><label>JB-01</label><em id="build">1.0</em></div>
+    <div class="sl fx" id="fClusterC"><label>cluster</label><input type="range" id="fCluster" min="0" max="100" value="55"><em id="fClusterV">55</em></div>
+    <div class="sl fx" id="fSizeC"><label>size</label><input type="range" id="fSize" min="0" max="100" value="70"><em id="fSizeV">70</em></div>
+    <div class="stat step fx" id="fShapeC"><label>shape</label><em id="fShapeV">DECAY</em></div>
+    <div class="sl fx" id="fBlurC"><label>blur</label><input type="range" id="fBlur" min="0" max="100" value="30"><em id="fBlurV">30</em></div>
+    <div class="stat step fx" id="fSpinC"><label>spin</label><em id="fSpinV">CIRCLE</em></div>
+    <div class="sl fx" id="fSendC"><label>send</label><input type="range" id="fSend" min="0" max="100" value="0"><em id="fSendV">0</em></div>
   </div>
   </div>
 </div>
@@ -733,6 +774,7 @@ function audio(){
   busDrums=ctx.createGain(); busBass=ctx.createGain();
   busKeys =ctx.createGain(); busMic =ctx.createGain(); busLoop=ctx.createGain();
   [busDrums,busBass,busKeys,busMic,busLoop].forEach(function(b){ b.connect(master); });
+  buildField();
   applyMixer();
   monGain=ctx.createGain(); monGain.gain.value=0; monGain.connect(busMic);
   var n=ctx.sampleRate*2, b=ctx.createBuffer(1,n,ctx.sampleRate), d=b.getChannelData(0);
@@ -781,6 +823,115 @@ function env(g,t,peak,dec,atk){ atk=atk||0.001;
   g.gain.setValueAtTime(0.0001,t);
   g.gain.exponentialRampToValueAtTime(Math.max(peak,0.0002),t+atk);
   g.gain.exponentialRampToValueAtTime(0.0001,t+dec);
+}
+
+/* ============ the field ============
+   A spatial delay as a SEND, not an insert: every channel feeds it in parallel
+   and its output returns to the master. Because it lives in the same graph as
+   the sequencer it is on the same clock by construction — there is nothing to
+   beatmatch. Sixteen taps rather than the standalone's twenty-eight, because
+   this has to run on a 2009 Core 2 Duo alongside everything else. */
+var FXTAPS=16, fxTaps=[], fxSend=null, fxRet=null, fxFb=null, fxFbF=null, fxHit=-99;
+var FSHAPES=[
+  {n:'DECAY',   f:function(u){ return Math.pow(1-u,2.2); }},
+  {n:'FLAT',    f:function(u){ return 1; }},
+  {n:'REVERSE', f:function(u){ return Math.pow(u,2.0); }},
+  {n:'SWELL',   f:function(u){ return Math.sin(u*Math.PI); }},
+  {n:'GATE',    f:function(u){ return u<0.55?1:0.05; }}
+];
+var FSPINS=[
+  {n:'OFF',      f:function(u,i){ return 0; }},
+  {n:'PINGPONG', f:function(u,i){ return (i%2)?1:-1; }},
+  {n:'SWEEP',    f:function(u,i){ return -1+2*u; }},
+  {n:'CIRCLE',   f:function(u,i){ return Math.sin(u*Math.PI*2*1.5+i*0.7); }},
+  {n:'EXPAND',   f:function(u,i){ return ((i%2)?1:-1)*u; }}
+];
+var fShapeIx=0, fSpinIx=3;
+
+function buildField(){
+  fxSend=ctx.createGain(); fxSend.gain.value=0;
+  fxRet =ctx.createGain(); fxRet.gain.value=1;
+  fxRet.connect(master);
+  [busDrums,busBass,busKeys,busMic,busLoop].forEach(function(b){ b.connect(fxSend); });
+  /* the regeneration loop stays inside the send, so it cannot run away into
+     the master path */
+  fxFbF=ctx.createBiquadFilter(); fxFbF.type='lowpass'; fxFbF.frequency.value=3800;
+  fxFb =ctx.createGain(); fxFb.gain.value=0.30;
+  fxRet.connect(fxFbF); fxFbF.connect(fxFb); fxFb.connect(fxSend);
+  for(var i=0;i<FXTAPS;i++){
+    var d=ctx.createDelay(4.0);
+    var f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=16000;
+    var pn=ctx.createStereoPanner();
+    var g=ctx.createGain(); g.gain.value=0;
+    fxSend.connect(d); d.connect(f); f.connect(pn); pn.connect(g); g.connect(fxRet);
+    fxTaps.push({d:d,f:f,p:pn,g:g,t:0,lvl:0,pan:0});
+  }
+  applyField();
+}
+
+function applyField(){
+  if(!ctx||!fxTaps.length) return;
+  var cl=(+$('fCluster').value)/100, sz=(+$('fSize').value)/100,
+      bl=(+$('fBlur').value)/100,   sd=(+$('fSend').value)/100;
+  var win=0.010+Math.pow(cl,2.1)*1.8, now=ctx.currentTime;
+  var shp=FSHAPES[fShapeIx].f, spn=FSPINS[fSpinIx].f;
+  var slew=0.20+bl*0.30, lv=[], sum=0, i, u;
+  for(i=0;i<FXTAPS;i++){
+    u=i/(FXTAPS-1);
+    var gate=Math.max(0,Math.min(1,(sz*1.06-u)/0.10));
+    var l=shp(u)*gate*(0.35+0.65*(1-u*0.5));
+    lv.push(l); sum+=l;
+  }
+  var norm=sum>0?1/sum:0;
+  for(i=0;i<FXTAPS;i++){
+    u=i/(FXTAPS-1);
+    var tp=fxTaps[i];
+    var t=win*u + ((Math.sin(i*12.9898)*43758.5453)%1)*bl*win*0.12;
+    if(t<0.001) t=0.001;
+    tp.t=t; tp.lvl=lv[i]*norm; tp.pan=Math.max(-1,Math.min(1,spn(u,i)));
+    tp.d.delayTime.setTargetAtTime(t, now, slew);
+    tp.p.pan.setTargetAtTime(tp.pan, now, 0.08);
+    tp.g.gain.setTargetAtTime(lv[i]*norm*1.9, now, 0.10);
+    tp.f.frequency.setTargetAtTime(Math.max(300,16000*Math.pow(1-bl,2.2)+500), now, 0.06);
+  }
+  fxSend.gain.setTargetAtTime(sd*0.9, now, 0.04);
+}
+
+/* the dots light when their echo sounds, and the sequencer is what feeds it */
+var fxCv=$('fxfld'), fxG=fxCv.getContext('2d'), FDPR=1;
+function fxSize(){
+  FDPR=Math.min(window.devicePixelRatio||1,2);
+  var r=fxCv.getBoundingClientRect();
+  fxCv.width=Math.max(1,Math.round(r.width*FDPR));
+  fxCv.height=Math.max(1,Math.round(r.height*FDPR));
+}
+if(window.ResizeObserver) new ResizeObserver(fxSize).observe(fxCv);
+window.addEventListener('resize',fxSize); fxSize();
+function drawField(){
+  if(!fxCv) return;
+  var w=fxCv.width, h=fxCv.height, pad=12*FDPR;
+  fxG.clearRect(0,0,w,h);
+  if(!fxTaps.length){ return; }
+  var maxT=0.001,i;
+  for(i=0;i<fxTaps.length;i++) if(fxTaps[i].t>maxT) maxT=fxTaps[i].t;
+  fxG.strokeStyle='rgba(26,26,24,.10)'; fxG.lineWidth=1*FDPR;
+  fxG.beginPath(); fxG.moveTo(pad,h/2); fxG.lineTo(w-pad,h/2); fxG.stroke();
+  var now=ctx?ctx.currentTime:0;
+  for(i=0;i<fxTaps.length;i++){
+    var tp=fxTaps[i];
+    var x=pad+(w-pad*2)*(tp.t/maxT), y=h/2+(h/2-pad)*tp.pan;
+    var base=Math.max(1.4*FDPR, tp.lvl*46*FDPR);
+    var age=now-(fxHit+tp.t);
+    var lit=(age>=0&&age<0.7)?(1-age/0.7):0;
+    /* a lit tap swells to 2.8x, so the earliest one would bleed off the
+       left edge — hold every dot fully inside the strip */
+    var rad=base*(1+lit*1.8);
+    x=Math.min(w-rad, Math.max(rad, x)); y=Math.min(h-rad, Math.max(rad, y));
+    fxG.beginPath(); fxG.arc(x,y,rad,0,Math.PI*2);
+    fxG.fillStyle = lit>0.02 ? 'rgba(255,90,31,'+(0.28+lit*0.7).toFixed(3)+')'
+                             : 'rgba(26,26,24,.20)';
+    fxG.fill();
+  }
 }
 
 /* ============ per-voice parameters ============ */
@@ -1013,7 +1164,7 @@ function schedule(s,t){
   if(s===0 && typeof DJ!=='undefined' && DJ.on) djBar();
   for(var i=0;i<TRACKS.length;i++){
     var v=pattern[i][s];
-    if(v>0 && !muted[i]) TRACKS[i].fn(t,VEL[v]);
+    if(v>0 && !muted[i]){ TRACKS[i].fn(t,VEL[v]); fxHit=t; }
   }
   if(bassSeq[s]>=0) bass(t,rowToMidi(bassSeq[s]),stepDur()*0.9);
   if(DJ.on && chordSeq[s] && DJ.chordNow.length){
@@ -1093,6 +1244,7 @@ function uiLoop(){
   }
   try{ djGlide(); }catch(e){}
   try{ audioStatus(); }catch(e){}
+  try{ drawField(); }catch(e){}
   if(analyser){
     analyser.getByteTimeDomainData(lvlBuf);
     var pk=0; for(var i=0;i<lvlBuf.length;i++){var d=Math.abs(lvlBuf[i]-128); if(d>pk)pk=d;}
@@ -2199,6 +2351,31 @@ $('bReset').onclick=function(){
     setTimeout(function(){ $('bMute').classList.toggle('on',!!MUTED.bass); },0);
   });
 })();
+
+/* ---- the send controls ---- */
+['fCluster','fSize','fBlur','fSend'].forEach(function(id){
+  var el=$(id), sl=el.closest('.sl'), out=$(id+'V');
+  function paint(){
+    sl.style.setProperty('--fill',((+el.value-+el.min)/(+el.max-+el.min)*100)+'%');
+    if(out) out.textContent=el.value;
+  }
+  paint();
+  el.addEventListener('input',function(){ paint(); applyField(); });
+  sl.addEventListener('wheel',function(e){
+    e.preventDefault();
+    var st=(+el.max-+el.min)/50;
+    el.value=Math.round(Math.max(+el.min,Math.min(+el.max,+el.value-Math.sign(e.deltaY)*st)));
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+  },{passive:false});
+});
+$('fShapeC').onclick=function(){
+  fShapeIx=(fShapeIx+1)%FSHAPES.length;
+  $('fShapeV').textContent=FSHAPES[fShapeIx].n; applyField();
+};
+$('fSpinC').onclick=function(){
+  fSpinIx=(fSpinIx+1)%FSPINS.length;
+  $('fSpinV').textContent=FSPINS[fSpinIx].n; applyField();
+};
 
 /* with the track names gone, the voice cell is the selector */
 $('vSel').onclick=function(){ selectVoice((selVoice+1)%TRACKS.length); previewVoice(); };
