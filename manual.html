@@ -87,9 +87,9 @@
   <h3>What works where</h3>
   <table>
     <tr><td>Sound</td><td>Everywhere. Web Audio is in every current browser. On phones and tablets you must tap once before anything makes noise &mdash; that is a browser rule, not a bug.</td></tr>
-    <tr><td>MIDI keyboard</td><td><b>Chrome and Edge only.</b> Firefox needs a preference switched on (see section 09). Safari and iOS have no Web MIDI at all &mdash; everything else still works, you just click instead of play.</td></tr>
+    <tr><td>MIDI keyboard</td><td><b>Chrome and Edge only.</b> Firefox needs a preference switched on (see section 10). Safari and iOS have no Web MIDI at all &mdash; everything else still works, you just click instead of play.</td></tr>
     <tr><td>Microphone</td><td>Needs <code>https://</code> or <code>localhost</code>. On a plain <code>http://</code> address the browser will refuse, silently.</td></tr>
-    <tr><td>Saving a session</td><td>Downloads as a <b>.wav</b> through the browser. If you are running the optional local server it writes straight to a folder instead &mdash; section 09.</td></tr>
+    <tr><td>Saving a session</td><td>Downloads as a <b>.wav</b> through the browser. If you are running the optional local server it writes straight to a folder instead &mdash; section 10.</td></tr>
   </table>
   <div class="tip">Nothing you make leaves your machine. There is no server involved in playing it, no analytics, and no upload. Close the tab and it is gone &mdash; so if a session mattered, record it.</div>
 </section>
@@ -103,7 +103,7 @@
         <tr><td>Play</td><td>Starts and stops the sequencer. <kbd>space</kbd></td></tr>
         <tr><td>Clear</td><td>Wipes drums and bass. <kbd>c</kbd></td></tr>
         <tr><td>Random</td><td>Generates a pattern — a sensible kick/hat skeleton plus scattered accents. Hit it repeatedly until something grabs you. <kbd>r</kbd></td></tr>
-        <tr><td>Auto</td><td>Hands the box to a resident DJ who never gets tired. See section 08. <kbd>a</kbd></td></tr>
+        <tr><td>Auto</td><td>Hands the box to a resident DJ who never gets tired. See section 09. <kbd>a</kbd></td></tr>
         <tr><td>Rec Session</td><td>Records everything you hear to a WAV file. <kbd>⇧R</kbd></td></tr>
       </table>
       <h3>The drum grid</h3>
@@ -175,11 +175,28 @@
 </section>
 
 <section>
-  <h2>04 · The Akai LPK25</h2>
+  <h2>04 · The field</h2>
+  <p>A delay, but not one echo repeating &mdash; <b>sixteen</b> taps, each one placed at its own moment and its own point across the stereo picture. The strip under the controls is the delay itself: every dot is a tap, its distance from the left is <i>when</i> it sounds, its height is <i>where</i> it sits between the speakers, and its size is how loud. When a tap fires, its dot lights.</p>
+  <p>It runs as a <b>send</b>. Every channel feeds it in parallel &mdash; drums, bass, keys, mic and loop &mdash; and its output returns to the master. Nothing is routed <i>through</i> it, so turning SEND to zero leaves the instrument exactly as it was.</p>
+  <table>
+    <tr><td>Cluster</td><td>How wide a window the sixteen taps are spread over. Low is a tight metallic burst; high throws them across seconds.</td></tr>
+    <tr><td>Size</td><td>How far into that window the taps survive. It gates the tail without moving anything &mdash; the timing you set with Cluster does not shift when you change Size.</td></tr>
+    <tr><td>Shape</td><td>The volume curve across the taps: DECAY fades away, FLAT holds, REVERSE swells in, SWELL rises then falls, GATE chops.</td></tr>
+    <tr><td>Blur</td><td>Darkens and softens the repeats so they sit behind the dry sound instead of competing with it.</td></tr>
+    <tr><td>Spin</td><td>How the taps are arranged across the stereo field: PING&#8209;PONG alternates, SWEEP walks, CIRCLE orbits, EXPAND opens outwards, OFF centres everything.</td></tr>
+    <tr><td>Send</td><td>How much goes in. Zero is silent &mdash; this is the only control that decides whether you hear the field at all.</td></tr>
+  </table>
+  <div class="tip"><b>It is already in time.</b> The field shares the instrument&rsquo;s clock, so its taps land against the same grid the sequencer is playing. There is no tempo to set and nothing to match &mdash; change the BPM and the field moves with it.</div>
+  <p>The repeats feed back into the send through a low&#8209;pass filter, so long settings build rather than simply fading. The loop is contained inside the send and cannot run away into the master.</p>
+  <div class="tip"><b>Auto Set plays drums and bass only.</b> So during a set the field is echoing those two &mdash; keys and chords are yours to play, and they go through it the moment you do.</div>
+</section>
+
+<section>
+  <h2>05 · The Akai LPK25</h2>
   <p>The <b>MIDI</b> dropdown in the footer decides what the keyboard plays.</p>
   <table>
     <tr><td>Drums + Keys</td><td><b>Default.</b> Keys below middle C (C3) trigger drums; C3 and above play the melodic KEYS voice. Left hand rhythm, right hand melody.</td></tr>
-    <tr><td>Keys only</td><td>The whole keyboard is melodic. See section 05.</td></tr>
+    <tr><td>Keys only</td><td>The whole keyboard is melodic. See section 06.</td></tr>
     <tr><td>Drums only</td><td>The whole keyboard is a drum kit.</td></tr>
     <tr><td>Bass only</td><td>The whole keyboard plays the bass synth — deeper and squelchier than Keys.</td></tr>
   </table>
@@ -205,7 +222,7 @@
 </section>
 
 <section>
-  <h2>05 · Playing notes over the beat</h2>
+  <h2>06 · Playing notes over the beat</h2>
   <p>The <b>KEYS</b> bar turns the Akai into a small melodic instrument you can play while the beat runs. It's built so that you cannot play a wrong note.</p>
 
   <h3>Scale lock — the important one</h3>
@@ -257,7 +274,7 @@
 </section>
 
 <section>
-  <h2>06 · The mic</h2>
+  <h2>07 · The mic</h2>
   <p>Any microphone or line source works &mdash; a USB interface, a built-in mic, or something plugged into the line-in. If the device has its own effects, they are processed <b>in the hardware</b>, before the signal reaches the computer. JB-01 just receives whatever comes out: change the effect on the device and you'll hear it change here.</p>
   <h3>The two mic buttons in JB-01</h3>
   <table>
@@ -278,7 +295,7 @@
 </section>
 
 <section>
-  <h2>07 · Recording a session</h2>
+  <h2>08 · Recording a session</h2>
   <p>Press <b>Rec Session</b> and JB-01 captures the complete mix — drums, bass, your loop, live mic, anything you play on the Akai — as it happens. Press it again to stop, and a <b>.wav</b> file downloads automatically, named with the date and time.</p>
   <table>
     <tr><td>Format</td><td>16-bit stereo WAV at your system rate. Opens in GarageBand, QuickTime, anything.</td></tr>
@@ -290,7 +307,7 @@
 
 
 <section>
-  <h2>08 · Auto Set</h2>
+  <h2>09 · Auto Set</h2>
   <p>Press <b>Auto Set</b> and the machine starts playing itself, indefinitely. It writes into the same drum grid and piano roll you use by hand, one bar ahead of the playhead — so you can watch the set being written while you hear it. Leave it on for four hours and it will still be going, and it will not have repeated itself.</p>
 
   <h3>Why it isn't just Random on a timer</h3>
@@ -330,7 +347,7 @@
 </section>
 
 <section>
-  <h2>09 · Running it locally</h2>
+  <h2>10 · Running it locally</h2>
   <p>Everything works from a plain web address. Running it on your own machine buys you three things: recordings that write straight to a folder instead of the downloads pile, a <b>Show in Finder</b> button that actually opens it, and a microphone that is allowed to work over <code>http://</code>.</p>
 
   <h3>Start the server</h3>
@@ -348,7 +365,7 @@
 </section>
 
 <section>
-  <h2>10 · Shortcuts &amp; fixes</h2>
+  <h2>11 · Shortcuts &amp; fixes</h2>
   <div class="grid2">
     <div>
       <h3>Keyboard</h3>
